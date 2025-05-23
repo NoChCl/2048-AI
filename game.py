@@ -1,67 +1,10 @@
-import random, pygame, sys,time
+import random, sys,time
 from ai import *
 from pygame.locals import *
 from random import randint
 import copy
 import math
-#defining the window size and other different specifications of the window
-FPS = 5
-WINDOWWIDTH = 640
-WINDOWHEIGHT = 640
-boxsize = min(WINDOWWIDTH,WINDOWHEIGHT)//4;
-margin = 5
-thickness = 0
-#defining the RGB for various colours used
-WHITE= (255, 255, 255)
-BLACK= (  0,   0,   0)
-RED = (255,   0,   0)
-GREEN= (  0, 255,   0)
-DARKGREEN= (  0, 155,   0)
-DARKGRAY= ( 40,  40,  40)
-LIGHTSALMON=(255, 160, 122)
-ORANGE=(221, 118, 7)
-LIGHTORANGE=(227,155,78)
-CORAL=(255, 127, 80)
-BLUE = (0, 0, 255)
-LIGHTBLUE = (0, 0, 150)
-colorback=(189,174,158)
-colorblank=(205,193,180)
-colorlight=(249,246,242)
-colordark=(119,110,101)
 
-fontSize=[100,85,70,55,40]
-
-dictcolor1={
-0:colorblank,
-2:(238,228,218),
-4:(237,224,200),
-8:(242,177,121),
-16:(245,149,99),
-32:(246,124,95),
-64:(246,95,59),
-128:(237,207,114),
-256:(237,204,97),
-512:(237,200,80),
-1024:(237,197,63),
-2048:(237,194,46),
-4096:(237,190,30),
-8192:(239,180,25) }
-
-dictcolor2={
-2:colordark,
-4:colordark,
-8:colorlight,
-16:colorlight,
-32:colorlight,
-64:colorlight,
-128:colorlight,
-256:colorlight,
-512:colorlight,
-1024:colorlight,
-2048:colorlight,
-4096:colorlight,
-8192:colorlight }
-BGCOLOR = LIGHTORANGE
 UP = 'up'
 DOWN = 'down'
 LEFT = 'left'
@@ -70,60 +13,16 @@ RIGHT = 'right'
 TABLE=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
 def main():
-    global FPSCLOCK, screen, BASICFONT
-
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    screen = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    pygame.display.set_caption('2048')
-
     #showStartScreen()
     myNet=NuralNet(16,make()[1])
-    while True:
+    
+    
+    
+    for i in range(int(input("Enter number of games to be simulated: "))):
         runGame(TABLE)
         #quit()
-        #gameover()
+        #gameover(
 
-
-def createButton(text, x, y, width, height, action=None):
-    mouse = pygame.mouse.get_pos()
-    click = pygame.mouse.get_pressed()
-    if x+width > mouse[0] > x and y+height > mouse[1] > y:
-        pygame.draw.rect(screen, LIGHTBLUE, (x,y,width,height))
-        if click[0] == 1 and action != None:
-            action()
-    else:
-        pygame.draw.rect(screen, BLUE, (x,y,width,height))
-
-    smallText = pygame.font.Font('freesansbold.ttf',50)
-    TextSurf = smallText.render(text,True,WHITE)
-    TextRect = TextSurf.get_rect()
-    TextRect.center = ((x+(width/2)),(y+(height/2)))
-    screen.blit(TextSurf, TextRect)
-
-
-def showStartScreen():
-#the start screen
-    titleFont = pygame.font.Font('freesansbold.ttf', 100)
-    titleSurf1 = titleFont.render('2048', True, WHITE, ORANGE)
-
-    while True:
-        screen.fill(BGCOLOR)
-        display_rect = pygame.transform.rotate(titleSurf1, 0)
-        rectangle = display_rect.get_rect()
-        rectangle.center = (WINDOWWIDTH / 2, WINDOWHEIGHT/8)
-        screen.blit(display_rect, rectangle)
-
-        createButton("NEW GAME", 80, 180, 480, 80, newGame)
-        createButton("HIGHSCORE", 80, 340, 480, 80, leaderboard)
-        createButton("QUIT", 80, 500, 480, 80, terminate)
-
-        if checkForKeyPress():
-            pygame.event.get()
-            return
-        pygame.display.update()
-        FPSCLOCK.tick(FPS)
 
 def newGame():
     runGame(TABLE)
@@ -179,86 +78,21 @@ def getScore(table):
         score+=cell
     return score
 
-def saveScore(score):
-    f=open("highScore.txt","a")
-    f.write(str(score)+"\n")
-    f.close()
-    print("Game Over", str(score))
-
-
-def showGameOverMessage(table):
-# to show game over screen
-    score=getScore(table)
-
-    print("Game Over", str(score))
-
-    
-    titleFont = pygame.font.Font('freesansbold.ttf', 60)
-    titleSurf1 = titleFont.render('Game Over', True, WHITE, ORANGE)
-    titleSurf2 = titleFont.render('Score: '+str(score), True, WHITE, ORANGE)
-    
-
-    while True:
-        screen.fill(BGCOLOR)
-        display_rect = pygame.transform.rotate(titleSurf1, 0)
-        rectangle = display_rect.get_rect()
-        rectangle.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
-        screen.blit(display_rect, rectangle)
-        
-        display_rect = pygame.transform.rotate(titleSurf2, 0)
-        rectangle = display_rect.get_rect()
-        rectangle.center = (WINDOWWIDTH / 2, (WINDOWHEIGHT / 2)+80)
-        screen.blit(display_rect, rectangle)
-        pygame.display.update()
-        #time.sleep(.5)
-        main()
-        
-'''
-        pygame.display.update()
-        if checkForKeyPress():
-            if len(pygame.event.get()) > 0:
-                main()
-        FPSCLOCK.tick(FPS)'''
-
-
-def show(TABLE):
-    #showing the table
-    screen.fill(colorback)
-    myfont = pygame.font.SysFont("Arial", 60, bold=True)
-    for i in range(4):
-        for j in range(4):
-            pygame.draw.rect(screen, dictcolor1[TABLE[i][j]], (j*boxsize+margin,
-                                              i*boxsize+margin,
-                                              boxsize-2*margin,
-                                              boxsize-2*margin),
-                                              thickness)
-            if TABLE[i][j] != 0:
-                order=int(math.log10(TABLE[i][j]))
-                myfont = pygame.font.SysFont("Arial", fontSize[order] , bold=True)
-                label = myfont.render("%4s" %(TABLE[i][j]), 1, dictcolor2[TABLE[i][j]] )
-                screen.blit(label, (j*boxsize+2*margin, i*boxsize+9*margin))
-                
-    pygame.display.update()
+def saveScore(table):
+	score=getScore(table)
+	f=open("highScore.txt","a")
+	f.write(str(score)+"\n")
+	f.close()
+    #print("Game Over", str(score))
 
 def runGame(TABLE, myNet=NuralNet(16,make()[1])):
     TABLE=randomfill(TABLE)
     TABLE=randomfill(TABLE)
-    #show(TABLE)
+
     running=True
     game=True
 
-    while game:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                print("quit")
-                pygame.quit(); sys.exit()
-            
-        desired_key = None
-  
-        #if desired_key is None:
-            #continue
-        #time.sleep(.25)
-        
+    while game:   
         n=netInput(myNet,TABLE)
         
         #print(n)
@@ -289,12 +123,12 @@ def runGame(TABLE, myNet=NuralNet(16,make()[1])):
             #show(TABLE)
         else:
           game=False
-          saveScore(getScore(TABLE))
+          saveScore(TABLE)
 
           #showGameOverMessage(TABLE)
         if gameOver(TABLE):
             game=False
-            saveScore(getScore(TABLE))
+            saveScore(TABLE)
 
             #showGameOverMessage(TABLE)
 
