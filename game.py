@@ -32,7 +32,7 @@ def main():
         except Exception as e:
             scoreNet+=[[0, net, "Error: "+str(e)]]
     
-    print("/nSaving SCORE NETS")
+    print("\nSaving SCORE NETS")
     pickle.dump(scoreNet, open("scoreNet.txt","wb"))
     
 
