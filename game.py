@@ -1,6 +1,6 @@
-import random, sys,time
+import random, sys,time, pickle
+from tqdm import tqdm
 from ai import *
-from pygame.locals import *
 from random import randint
 import copy
 import math
@@ -13,15 +13,28 @@ RIGHT = 'right'
 TABLE=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
 def main():
-    #showStartScreen()
-    myNet=NuralNet(16,make()[1])
+    #myNet=NuralNet(16,make()[1])
     
+    print("\nLoading Generated Nets")
     
+    nets=pickle.load(open("nets.txt","rb"))
     
-    for i in range(int(input("Enter number of games to be simulated: "))):
-        runGame(TABLE)
-        #quit()
-        #gameover(
+    scoreNet=[]
+    
+    print("\nRunning Nets")
+
+    for net in tqdm(nets):
+        
+        
+        
+        try:
+            scoreNet += [runGame(TABLE, net)]   
+        except Exception as e:
+            scoreNet+=[[0, net, "Error: "+str(e)]]
+    
+    print("/nSaving SCORE NETS")
+    pickle.dump(scoreNet, open("scoreNet.txt","wb"))
+    
 
 
 def newGame():
@@ -79,13 +92,13 @@ def getScore(table):
     return score
 
 def saveScore(table):
-	score=getScore(table)
-	f=open("highScore.txt","a")
-	f.write(str(score)+"\n")
-	f.close()
+    score=getScore(table)
+    f=open("highScore.txt","a")
+    f.write(str(score)+"\n")
+    f.close()
     #print("Game Over", str(score))
 
-def runGame(TABLE, myNet=NuralNet(16,make()[1])):
+def runGame(TABLE, net=NuralNet(16,make()[1])):
     TABLE=randomfill(TABLE)
     TABLE=randomfill(TABLE)
 
@@ -93,7 +106,7 @@ def runGame(TABLE, myNet=NuralNet(16,make()[1])):
     game=True
 
     while game:   
-        n=netInput(myNet,TABLE)
+        n=netInput(net,TABLE)
         
         #print(n)
         
@@ -123,14 +136,15 @@ def runGame(TABLE, myNet=NuralNet(16,make()[1])):
             #show(TABLE)
         else:
           game=False
-          saveScore(TABLE)
+          score = getScore(TABLE)
 
           #showGameOverMessage(TABLE)
         if gameOver(TABLE):
             game=False
-            saveScore(TABLE)
+            score = getScore(TABLE)
 
             #showGameOverMessage(TABLE)
+    return [score, net]
 
 def key(DIRECTION,TABLE):
     if   DIRECTION =='w':

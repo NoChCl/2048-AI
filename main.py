@@ -1,11 +1,21 @@
-import time
+import time, pickle
+from tqdm import tqdm
 from game import *
+from ai import *
 
-#printHighScore()
-#quit()
+
 TABLE=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
-try:
-    main()
-except Exception as e:
-    print(e)
+nets=[]
+
+simGameNumb=int(input("Enter number of games to be simulated: "))
+
+print("\nGenerating Nets")
+for i in tqdm(range(simGameNumb)):
+	nets+=[NuralNet(16,make()[1])]
+
+pickle.dump(nets, open("nets.txt","wb"))
+
+
+main()
+

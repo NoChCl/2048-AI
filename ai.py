@@ -77,13 +77,10 @@ def make():
     outputs=[[[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)], [[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)],[[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)],[[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)]]
     otherLayers=[firstLayer, outputs]
     output=inputs, otherLayers
-    f=open("netValues.txt","a")
-    f.write(str(outputs)+"\n")
-    f.close()
+    #f=open("nets.txt","a")
+    #f.write(str(outputs)+"\n")
+    #f.close()
     return output
 
 
 
-
-
-#print()
