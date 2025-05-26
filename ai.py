@@ -70,11 +70,20 @@ def netInput(myNet,t):
   
   #print(myNet.outputs[-1])
   return output
-def make():
+def makeOld():
     inputs=16
-    firstLayer=[[[random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10)],20],[[random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)]]
     
-    outputs=[[[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)], [[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)],[[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)],[[random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)]]
+    firstLayer=[
+    [[random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10)],20],
+    [[random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)]]
+    
+    outputs=[
+    
+    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)], 
+    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)],
+    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)],
+    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)]]
+    
     otherLayers=[firstLayer, outputs]
     output=inputs, otherLayers
     #f=open("nets.txt","a")
@@ -82,5 +91,34 @@ def make():
     #f.close()
     return output
 
+
+def generateWeights(count):
+	weightRange = (-10, 10)
+	output=[]
+	
+	for i in range(count):
+		output += [random.randint(*weightRange)]
+	return output
+
+def generateNeuron(inputCount):
+	weightRange = (-10, 10)
+	
+	return [generateWeights(inputCount), random.randint(*weightRange)]
+
+def make():
+    inputCount = 16
+    weightRange = (-10, 10)
+	
+	#generate first layer, with inputCount weights, 32 total
+    firstLayer = [generateNeuron(inputCount) for _ in range(32)]
+    
+    #generate first layer, with inputCount weights, 2 total
+    secondLayer = [generateNeuron(32) for _ in range(32)]
+    
+    #generate last layer, with 2 weights, 4 total
+    outputLayer = [generateNeuron(32) for _ in range(4)]
+
+    otherLayers = [firstLayer, secondLayer, outputLayer]
+    return inputCount, otherLayers
 
 
