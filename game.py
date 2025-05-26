@@ -1,8 +1,8 @@
-import random, sys,time, pickle
+import random, sys, time, pickle
 from tqdm import tqdm
 from ai import *
 from random import randint
-import copy
+from random import randint
 import math
 
 UP = 'up'
@@ -10,11 +10,8 @@ DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
 
-TABLE=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
-def main():
-    #myNet=NuralNet(16,make()[1])
-    
+def main():    
     print("\nLoading Generated Nets")
     
     nets=pickle.load(open("nets.txt","rb"))
@@ -22,202 +19,247 @@ def main():
     scoreNet=[]
     
     print("\nRunning Nets")
+    
+    
+    for i, net in enumerate(tqdm(nets)):
 
-    for net in tqdm(nets):
-        
-        
-        
-        try:
-            scoreNet += [runGame(TABLE, net)]   
-        except Exception as e:
-            scoreNet+=[[0, net, "Error: "+str(e)]]
+        scoreNet += [avrgGame(net)]   
+		
+		if i%1000==0:
+			sleep(3)
+    
     
     print("\nSaving SCORE NETS")
     pickle.dump(scoreNet, open("scoreNet.txt","wb"))
+
+
+'''
+def worker(net, queue):
+    result = avrgGame(net)
+    
+    queue.put(result)
     
 
 
-def newGame():
-    runGame(TABLE)
+
+def main():
+    print("\nLoading Generated Nets")
+    
+    nets = pickle.load(open("nets.txt", "rb"))
+
+
+    print("\nRunning Nets")
+    
+    MAX_PROCESSES = max(multiprocessing.cpu_count() - 2, 1)
+        
+    scoreNet = []
+    
+    queue = multiprocessing.Queue()
+    
+    processes = []
+    
+    active = 0
+    
+    for net in tqdm(nets):
+        
+        while active>=MAX_PROCESSES:
+            if not queue.empty():
+                scoreNet.append(queue.get())
+            
+            processes = remvDedProc(processes)
+            active=len(processes)
+            
+        p = multiprocessing.Process(target=worker, args=(net, queue))
+        p.start()
+        active+=1
+        processes.append(p)
+        
+        
+
+            
+    while active !=0:
+        if not queue.empty():
+            scoreNet.append(queue.get())
+        processes = remvDedProc(processes)
+        active=len(processes)
+
+
+    # Collect finished processes
+    while not queue.empty():
+        scoreNet.append(queue.get())
+
+	
+    print("\nSaving SCORE NETS")
+    
+    pickle.dump(scoreNet, open("scoreNet.txt", "wb"))
+    
+def remvDedProc(processes):
+    for p in processes:
+        if not p.is_alive():
+            p.join()
+            processes.remove(p)
+    return processes
+
+'''
+
+
+def avrgGame(net):
+    
+    TABLE = np.zeros((4, 4), dtype=int)
+    
+    errors=[]
+    
+    # try 10 times to get valid starting avrg
+    # if ever succede, move on, else, try again
+    
+    for i in range(10):
+        try:
+            avrgScore=runGame(TABLE.copy(), net)
+            errored=False
+            break
+        except Exception as e:
+            errors+=[e]
+            errored=True
+            
+            
+    # after 10 times, its a lost cause, write it off as a 0
+    if errored:
+        return [0, net, errors]
+    
+    # run it a total of 10 times, 9 extra and 1 starting
+    for i in range(9):
+        try:
+            avrgScore+=runGame(TABLE.copy, net)
+            avrgScore/=2
+        except Exception as e:
+            errors+=[e]
+    
+    # return the avrg score, the net and whatever errors it had
+    return [avrgScore, net, errors]
+
+
+
+
 
 def randomfill(TABLE):
-    # search for zero in the game table and randomly fill the places
-    flatTABLE = sum(TABLE,[])
-    if 0 not in flatTABLE:
+    if not np.any(TABLE == 0):
         return TABLE
-    empty=False
-    w=0
-    while not empty:
-        w=randint(0,15)
-        if TABLE[w//4][w%4] == 0:
-            empty=True
-    z=randint(1,5)
-    if z==5:
-        TABLE[w//4][w%4] = 4
-    else:
-        TABLE[w//4][w%4] = 2
+
+    while True:
+        w = randint(0, 15)
+        row, col = divmod(w, 4)
+        if TABLE[row][col] == 0:
+            TABLE[row][col] = 4 if randint(1, 5) == 5 else 2
+            break
     return TABLE
 
 def gameOver(TABLE):
-    # returns False if a box is empty or two boxes can be merged
-    x = [-1, 0, 1, 0 ]
-    y = [0 , 1, 0, -1]
-    for pi in range(4):
-        for pj in range(4):
-            if TABLE[pi][pj] == 0:
+    for i in range(4):
+        for j in range(4):
+            if TABLE[i][j] == 0:
                 return False
-            for point in range(4):
-                if pi+x[point] > -1 and pi+x[point] < 4 and pj+y[point] > -1 and pj+y[point] < 4 and TABLE[pi][pj] == TABLE[pi+x[point]][pj+y[point]]:
+            for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+                ni, nj = i + dx, j + dy
+                if 0 <= ni < 4 and 0 <= nj < 4 and TABLE[ni][nj] == TABLE[i][j]:
                     return False
     return True
 
-def checkForKeyPress():
-    #checking if a key is pressed or not
-    if len(pygame.event.get(QUIT)) > 0:
-        terminate()
-
-    keyUpEvents = pygame.event.get(KEYUP)
-    if len(keyUpEvents) == 0:
-        return None
-    if keyUpEvents[0].key == K_ESCAPE:
-        terminate()
-    return keyUpEvents[0].key
-
 def getScore(table):
-    # to show game over screen
-    score=0
-    for collem in table:
-      for cell in collem:
-        score+=cell
-    return score
+    return np.sum(table)
 
-def saveScore(table):
-    score=getScore(table)
-    f=open("highScore.txt","a")
-    f.write(str(score)+"\n")
-    f.close()
-    #print("Game Over", str(score))
 
 def runGame(TABLE, net=NuralNet(16,make()[1])):
     TABLE=randomfill(TABLE)
     TABLE=randomfill(TABLE)
+    
+    while True:
+        n = netInput(net, TABLE)
+        direction = ["w", "a", "s", "d"][np.argmax(n)]
+        new_table = key(direction, TABLE.copy())
 
-    running=True
-    game=True
-
-    while game:   
-        n=netInput(net,TABLE)
-        
-        #print(n)
-        
-        big=0
-        for y,x in enumerate(n):
-          #print(y)
-          
-          if x>=big:
-            if y==0: desired_key = "w"
-            if y==1: desired_key = "a"
-            if y==2: desired_key = "s"
-            if y==3: desired_key = "d"
-            big = x
-            '''
-        y=random.randint(0,3)
-        
-        if y==0: desired_key = "w"
-        if y==1: desired_key = "a"
-        if y==2: desired_key = "s"
-        if y==3: desired_key = "d"  
-'''
-
-        #print(desired_key)
-        new_table = key(desired_key, copy.deepcopy(TABLE))
-        if new_table != TABLE:
-            TABLE=randomfill(new_table)
-            #show(TABLE)
+        if not np.array_equal(new_table, TABLE):
+            TABLE = randomfill(new_table)
         else:
-          game=False
-          score = getScore(TABLE)
+            break
 
-          #showGameOverMessage(TABLE)
         if gameOver(TABLE):
-            game=False
-            score = getScore(TABLE)
+            break
 
-            #showGameOverMessage(TABLE)
-    return [score, net]
+    return getScore(TABLE)
+    
 
-def key(DIRECTION,TABLE):
-    if   DIRECTION =='w':
-        for pi in range(1,4):
+def key(direction, TABLE):
+    if direction == 'w':
+        for pi in range(1, 4):
             for pj in range(4):
-                if TABLE[pi][pj] !=0: TABLE=moveup(pi,pj,TABLE)
-    elif DIRECTION =='s':
-        for pi in range(2,-1,-1):
+                if TABLE[pi][pj] != 0:
+                    TABLE = moveup(pi, pj, TABLE)
+    elif direction == 's':
+        for pi in range(2, -1, -1):
             for pj in range(4):
-                if TABLE[pi][pj] !=0: TABLE=movedown(pi,pj,TABLE)
-    elif DIRECTION =='a':
-        for pj in range(1,4):
+                if TABLE[pi][pj] != 0:
+                    TABLE = movedown(pi, pj, TABLE)
+    elif direction == 'a':
+        for pj in range(1, 4):
             for pi in range(4):
-                if TABLE[pi][pj] !=0: TABLE=moveleft(pi,pj,TABLE)
-    elif DIRECTION =='d':
-        for pj in range(2,-1,-1):
+                if TABLE[pi][pj] != 0:
+                    TABLE = moveleft(pi, pj, TABLE)
+    elif direction == 'd':
+        for pj in range(2, -1, -1):
             for pi in range(4):
-                if TABLE[pi][pj] !=0: TABLE=moveright(pi,pj,TABLE)
+                if TABLE[pi][pj] != 0:
+                    TABLE = moveright(pi, pj, TABLE)
     return TABLE
 
-def movedown(pi,pj,T):
-    justcomb=False
+def movedown(pi, pj, T):
+    justcomb = False
     while pi < 3 and (T[pi+1][pj] == 0 or (T[pi+1][pj] == T[pi][pj] and not justcomb)):
         if T[pi+1][pj] == 0:
             T[pi+1][pj] = T[pi][pj]
-        elif T[pi+1][pj]==T[pi][pj]:
+        elif T[pi+1][pj] == T[pi][pj]:
             T[pi+1][pj] += T[pi][pj]
-            justcomb=True
-        T[pi][pj]=0
-        pi+=1
+            justcomb = True
+        T[pi][pj] = 0
+        pi += 1
     return T
 
-def moveleft(pi,pj,T):
-    justcomb=False
-    while pj > 0  and (T[pi][pj-1] == 0 or (T[pi][pj-1] == T[pi][pj] and not justcomb)):
+def moveleft(pi, pj, T):
+    justcomb = False
+    while pj > 0 and (T[pi][pj-1] == 0 or (T[pi][pj-1] == T[pi][pj] and not justcomb)):
         if T[pi][pj-1] == 0:
-            T[pi][pj-1] = T[pi][pj]   
-        elif T[pi][pj-1]==T[pi][pj]:
+            T[pi][pj-1] = T[pi][pj]
+        elif T[pi][pj-1] == T[pi][pj]:
             T[pi][pj-1] += T[pi][pj]
-            justcomb=True
-        T[pi][pj]=0
-        pj-=1
+            justcomb = True
+        T[pi][pj] = 0
+        pj -= 1
     return T
 
-def moveright(pi,pj,T):
-    justcomb=False
+def moveright(pi, pj, T):
+    justcomb = False
     while pj < 3 and (T[pi][pj+1] == 0 or (T[pi][pj+1] == T[pi][pj] and not justcomb)):
         if T[pi][pj+1] == 0:
             T[pi][pj+1] = T[pi][pj]
-        elif T[pi][pj+1]==T[pi][pj]:
+        elif T[pi][pj+1] == T[pi][pj]:
             T[pi][pj+1] += T[pi][pj]
-            justcomb=True
+            justcomb = True
         T[pi][pj] = 0
-        pj+=1
+        pj += 1
     return T
 
-def moveup(pi,pj,T):
-    justcomb=False
+def moveup(pi, pj, T):
+    justcomb = False
     while pi > 0 and (T[pi-1][pj] == 0 or (T[pi-1][pj] == T[pi][pj] and not justcomb)):
         if T[pi-1][pj] == 0:
-            T[pi-1][pj] = T[pi][pj] 
-        elif T[pi-1][pj]==T[pi][pj]:
+            T[pi-1][pj] = T[pi][pj]
+        elif T[pi-1][pj] == T[pi][pj]:
             T[pi-1][pj] += T[pi][pj]
-            justcomb=True
-        T[pi][pj]=0
-        pi-=1
+            justcomb = True
+        T[pi][pj] = 0
+        pi -= 1
     return T
 
-def leaderboard():
-    s = 'to show leaderboard'
 
-def terminate():
-    pygame.quit()
-    sys.exit()
+
 
 #main()
