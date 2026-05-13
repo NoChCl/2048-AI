@@ -60,7 +60,10 @@ def netInput(myNet,t):
   ins =[]
   for row in t:
     for cell in row:
-      ins+=[cell]
+      if cell == 0:
+        ins+=[0]
+      else:
+        ins+=[math.log(cell, 2)]
   
 
   myNet.update(ins)
@@ -70,6 +73,9 @@ def netInput(myNet,t):
   
   #print(myNet.outputs[-1])
   return output
+
+
+
 def makeOld():
     inputs=16
     
@@ -93,23 +99,23 @@ def makeOld():
 
 
 def generateWeights(count):
-	weightRange = (-10, 10)
-	output=[]
-	
-	for i in range(count):
-		output += [random.randint(*weightRange)]
-	return output
+        weightRange = (-10, 10)
+        output=[]
+        
+        for i in range(count):
+                output += [random.randint(*weightRange)]
+        return output
 
 def generateNeuron(inputCount):
-	weightRange = (-10, 10)
-	
-	return [generateWeights(inputCount), random.randint(*weightRange)]
+        weightRange = (-10, 10)
+        
+        return [generateWeights(inputCount), random.randint(*weightRange)]
 
 def make():
     inputCount = 16
     weightRange = (-10, 10)
-	
-	#generate first layer, with inputCount weights, 32 total
+        
+        #generate first layer, with inputCount weights, 32 total
     firstLayer = [generateNeuron(inputCount) for _ in range(32)]
     
     #generate first layer, with inputCount weights, 2 total
