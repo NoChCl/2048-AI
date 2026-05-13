@@ -6,18 +6,37 @@ class Nuron():
                 self.weights=weights
                 self.bias=bias
                 self.output=0
-        def update(self,vals):
-                self.output=0
+                
+                self.lastInputs = []
+                self.rawOutput = 0
+                self.output = 0
+                self.error = 0
+
+
+        def update(self, vals):
+                self.lastInputs = vals
+
+                self.rawOutput=0
                 for i in range(self.inputNumb):
                         a=vals[i]
                         w=self.weights[i]
-                        self.output+=a*w
+                        self.rawOutput+=a*w
                 #print(self.output)
-                self.output+=self.bias
-                self.output=sigmoid(self.output)
+                self.rawOutput+=self.bias
+                self.output=sigmoid(self.rawOutput)
                 return self.output
+
+        def train(self, targ, lr):
+              error=targ-self.output
+
+              for i in range(self.inputNumb):
+                    self.weights[i]+=lr*error*self.lastInputs[i]
+              self.bias+=lr*error
+
+
 class NuralNet():
         def __init__(self, inputNumb, otherLayers):
+                self.reward=0
                 self.inputNumb=inputNumb
                 self.otherLayers=otherLayers
                 self.numbLayers=len(otherLayers)
@@ -43,17 +62,26 @@ class NuralNet():
                                         nuron.update(self.outputs[i-1])
                                 layerOuts+=[nuron.output]
                         self.outputs+=[layerOuts]
+
+        def trianOutLayer(self, targs, lr):
+              
+              outLayer=self.nurons[-1]
+
+              for i, nuron in enumerate(outLayer):
+                    nuron.train(targs[i], lr)
+              self.reward=0
                         
 class AI():
-  def __iniit__(self):
+  def __init__(self):
     self.score=0
   def giveScore(self, score):
     self.score+=score
     
-
+def maxMin(targ):
+      return max(0, min(1, targ))
 
 def sigmoid(n):
-        return 1/(1+(math.e**n))
+        return 1/(1+(math.e**-n))
                         
 
 def netInput(myNet,t):
@@ -67,53 +95,33 @@ def netInput(myNet,t):
   
 
   myNet.update(ins)
-  output=myNet.outputs[-1]
-  if myNet.outputs[-1][0]==myNet.outputs[-1][1]==myNet.outputs[-1][2]==myNet.outputs[-1][3]:
-    output[random.randint(0,3)]=2
+  
   
   #print(myNet.outputs[-1])
-  return output
+  return handelNetOut(myNet)
 
-
-
-def makeOld():
-    inputs=16
-    
-    firstLayer=[
-    [[random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10), random.randint(-10,10)],20],
-    [[random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10),random.randint(-10,10)],random.randint(-10,10)]]
-    
-    outputs=[
-    
-    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)], 
-    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)],
-    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)],
-    [[random.randint(-10,10), random.randint(-10,10)], random.randint(-10,10)]]
-    
-    otherLayers=[firstLayer, outputs]
-    output=inputs, otherLayers
-    #f=open("nets.txt","a")
-    #f.write(str(outputs)+"\n")
-    #f.close()
-    return output
+def handelNetOut(myNet):
+        output=myNet.outputs[-1]
+        if myNet.outputs[-1][0]==myNet.outputs[-1][1]==myNet.outputs[-1][2]==myNet.outputs[-1][3]:
+                output[random.randint(0,3)]=2
+        return output
 
 
 def generateWeights(count):
-        weightRange = (-10, 10)
+        weightRange = (-100, 100)
         output=[]
         
         for i in range(count):
-                output += [random.randint(*weightRange)]
+                output += [random.randint(*weightRange)/100]
         return output
 
 def generateNeuron(inputCount):
-        weightRange = (-10, 10)
+        weightRange = (-100, 100)
         
-        return [generateWeights(inputCount), random.randint(*weightRange)]
+        return [generateWeights(inputCount), random.randint(*weightRange)/100]
 
 def make():
     inputCount = 16
-    weightRange = (-10, 10)
         
         #generate first layer, with inputCount weights, 32 total
     firstLayer = [generateNeuron(inputCount) for _ in range(32)]

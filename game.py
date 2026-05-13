@@ -26,6 +26,8 @@ def main():
 
 		scoreNet += [avrgGame(net)]   
 		
+		net=scoreNet[-1][1]
+
 		if i%1000==0:
 			#sleep(3)
 			pass
@@ -33,6 +35,9 @@ def main():
 	
 	print("\nSaving SCORE NETS")
 	pickle.dump(scoreNet, open("scoreNet.txt","wb"))
+
+	print("\nSaving Nets")
+	pickle.dump(nets, open("nets.txt","wb"))
 
 
 '''
@@ -116,7 +121,7 @@ def avrgGame(net):
 	
 	for i in range(10):
 		try:
-			avrgScore=runGame(TABLE.copy(), net)
+			avrgScore=runGame(TABLE.copy(), net)[0]
 			errored=False
 			break
 		except Exception as e:
@@ -129,10 +134,11 @@ def avrgGame(net):
 	if errored:
 		return [0, net]
 	
-	# run it a total of 10 times, 9 extra and 1 starting
-	for i in range(9):
+	# run it a total of 1000 times, 9999 extra and 1 starting
+	for i in range(999):
 		try:
-			avrgScore+=runGame(TABLE.copy, net)
+			thisGame, net=runGame(TABLE.copy, net)
+			avrgScore+=thisGame
 			avrgScore/=2
 		except Exception as e:
 			if str(e) != "'builtin_function_or_method' object is not iterable":
@@ -142,6 +148,13 @@ def avrgGame(net):
 	return [avrgScore, net]
 
 
+def getMtNumb(TABLE):
+	mts=0
+	for row in TABLE:
+		for cell in row:
+			if cell == 0:
+				mts+=1
+	return mts
 
 
 
@@ -175,21 +188,59 @@ def getScore(table):
 def runGame(TABLE, net=NuralNet(16,make()[1])):
 	TABLE=randomfill(TABLE)
 	TABLE=randomfill(TABLE)
-	
+	iterations=1
+	oldMT=16
+	done=False
+	gmBonus=.05
 	while True:
 		n = netInput(net, TABLE)
-		direction = ["w", "a", "s", "d"][np.argmax(n)]
+
+		indexy=np.argmax(n)
+		direction = ["w", "a", "s", "d"][indexy]
 		new_table = key(direction, TABLE.copy())
+
+		mt=getMtNumb(new_table)
+		mtDif=mt-oldMT
+		oldMT=mt
+
+		net.reward=(mtDif*.15)
+
 
 		if not np.array_equal(new_table, TABLE):
 			TABLE = randomfill(new_table)
+			net.reward+=gmBonus
+			#net.reward+=.05*iterations
+			iterations+=1
 		else:
-			break
+			net.reward-=.8
+			#gmBonus+=.05
+			#=True
+			
 
 		if gameOver(TABLE):
+			net.reward-=5
+			done=True
+			
+		
+		targs=[.5,.5,5,.5]
+
+		targs[indexy]=maxMin(net.reward)
+
+		'''print(
+    	"reward:", net.reward,
+   		 "move:", direction,
+   		 "mtDif:", mtDif
+)'''
+
+		net.trianOutLayer(targs, .0005)
+
+
+
+		
+		if done:
 			break
 
-	return getScore(TABLE)
+	return getScore(TABLE), net
 	
 
 def key(direction, TABLE):
