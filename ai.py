@@ -82,6 +82,9 @@ def maxMin(targ):
 
 def sigmoid(n):
         return 1/(1+(math.e**-n))
+def sigmoidDeriv(x):
+    s = sigmoid(x)
+    return s * (1 - s)
                         
 
 def netInput(myNet,t):
@@ -130,7 +133,7 @@ def make():
     secondLayer = [generateNeuron(32) for _ in range(32)]
     
     #generate last layer, with 2 weights, 4 total
-    outputLayer = [generateNeuron(32) for _ in range(4)]
+    outputLayer = [generateNeuron(32) for _ in range(9)]
 
     otherLayers = [firstLayer, secondLayer, outputLayer]
     return inputCount, otherLayers

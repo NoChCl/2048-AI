@@ -121,7 +121,7 @@ def avrgGame(net):
 	
 	for i in range(10):
 		try:
-			avrgScore=runGame(TABLE.copy(), net)[0]
+			avrgScore = runGame(TABLE.copy(), net)[0]
 			errored=False
 			break
 		except Exception as e:
@@ -134,15 +134,17 @@ def avrgGame(net):
 	if errored:
 		return [0, net]
 	
+
 	# run it a total of 1000 times, 9999 extra and 1 starting
-	for i in range(999):
+	for i in tqdm(range(999)):
 		try:
-			thisGame, net=runGame(TABLE.copy, net)
+			thisGame, net = runGame(TABLE.copy(), net)
+		
 			avrgScore+=thisGame
+
 			avrgScore/=2
 		except Exception as e:
-			if str(e) != "'builtin_function_or_method' object is not iterable":
-				print(e)
+			print(e)
 	
 	# return the avrg score, the net and whatever errors it had
 	return [avrgScore, net]
@@ -192,29 +194,36 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 	oldMT=16
 	done=False
 	gmBonus=.05
+	invalidMoves=0
 	while True:
+		
 		n = netInput(net, TABLE)
 
-		indexy=np.argmax(n)
+		indexy=np.argmax(n[:4])
 		direction = ["w", "a", "s", "d"][indexy]
 		new_table = key(direction, TABLE.copy())
 
+		
 		mt=getMtNumb(new_table)
 		mtDif=mt-oldMT
 		oldMT=mt
+		targs=[.5,.5,.5,.5, 0, 0, 0, 0, mt/16]
 
 		net.reward=(mtDif*.15)
+
+		for i, d in enumerate(["w", "a", "s", "d"]):
+			if directionIsValid(d, TABLE):
+				targs[i+3]=1
 
 
 		if not np.array_equal(new_table, TABLE):
 			TABLE = randomfill(new_table)
 			net.reward+=gmBonus
-			#net.reward+=.05*iterations
+			net.reward+=.05*iterations
 			iterations+=1
 		else:
 			net.reward-=.8
-			#gmBonus+=.05
-			#=True
+			invalidMoves+=1
 			
 
 		if gameOver(TABLE):
@@ -222,7 +231,6 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 			done=True
 			
 		
-		targs=[.5,.5,5,.5]
 
 		targs[indexy]=maxMin(net.reward)
 
@@ -239,9 +247,20 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 		
 		if done:
 			break
-
-	return getScore(TABLE), net
 	
+	#print(f"Percent invalid: {(invalidMoves/(invalidMoves+iterations))*100}%")
+
+	return (getScore(TABLE), net)
+
+
+	
+def directionIsValid(direction, oldTable):
+	newTable=key(direction, oldTable.copy())
+
+	return not np.array_equal(newTable, oldTable)
+
+
+
 
 def key(direction, TABLE):
 	if direction == 'w':
