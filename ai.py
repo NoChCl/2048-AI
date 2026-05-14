@@ -1,4 +1,4 @@
-import random, math
+import random, math, tqdm
 
 class Nuron():
         def __init__(self, weights, bias):
@@ -139,3 +139,10 @@ def make():
     return inputCount, otherLayers
 
 
+def genNewNets(netNumb):
+        nets=[]
+        print("\nGenerating Nets")
+        for i in tqdm(range(netNumb)):
+                nets+=[NuralNet(16,make()[1])]
+
+        return nets

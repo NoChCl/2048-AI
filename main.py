@@ -5,26 +5,25 @@ from ai import *
 from readScoreNet import *
 
 
+def worker(net, id):
+	while True:
+		result = avrgGame(net)
+		resultQueue.put((id, result))
+		net=result[1]
+
+
+
 if __name__ == "__main__":
 
 	TABLE=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 
 	nets=[]
+	#nets=genNewNets(4)
 
 	resultQueue = queue.Queue()
 
 	
-	#simGameNumb=int(input("Enter number of games to be simulated: "))
-
-	'''	
-	simGameNumb = 4
-
-	print("\nGenerating Nets")
-	for i in tqdm(range(simGameNumb)):
-		nets+=[NuralNet(16,make()[1])]
-
-	pickle.dump(nets, open("nets.txt","wb"))
-	#'''
+	
 
 	it=0
 	while True:

@@ -11,12 +11,6 @@ LEFT = 'left'
 RIGHT = 'right'
 
 
-def worker(net, id):
-	while True:
-		result = avrgGame(net)
-		resultQueue.put((id, result))
-		net=result[1]
-
 
 
 
