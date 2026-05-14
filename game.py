@@ -13,7 +13,7 @@ RIGHT = 'right'
 
 
 
-def avrgGame(net, id):
+def avrgGame(net):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 	
@@ -39,7 +39,7 @@ def avrgGame(net, id):
 	
 
 	# run it a total of 500 times, 499 extra and 1 starting
-	for i in tqdm(range(499), position=id, leave=True):
+	for i in range(499):
 		try:
 			thisGame, net, percentError = runGame(TABLE.copy(), net)
 		
