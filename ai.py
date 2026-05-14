@@ -78,7 +78,7 @@ class AI():
     self.score+=score
     
 def maxMin(targ):
-      return max(0, min(1, targ))
+      return max(-.5, min(.5, targ))
 
 def sigmoid(n):
         return 1/(1+(math.e**-n))

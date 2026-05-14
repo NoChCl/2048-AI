@@ -2,7 +2,6 @@ import random, sys, time, pickle
 from tqdm import tqdm
 from ai import *
 from random import randint
-from random import randint
 import numpy as np
 import math
 
@@ -12,32 +11,13 @@ LEFT = 'left'
 RIGHT = 'right'
 
 
-def main():    
-	print("\nLoading Generated Nets")
-	
-	nets=pickle.load(open("nets.txt","rb"))
-	
-	scoreNet=[]
-	
-	print("\nRunning Nets")
-	
-	
-	for i, net in enumerate(tqdm(nets)):
+def worker(net, id):
+	while True:
+		result = avrgGame(net)
+		resultQueue.put((id, result))
+		net=result[1]
 
-		scoreNet += [avrgGame(net)]   
-		
-		net=scoreNet[-1][1]
 
-		if i%1000==0:
-			#sleep(3)
-			pass
-	
-	
-	print("\nSaving SCORE NETS")
-	pickle.dump(scoreNet, open("scoreNet.txt","wb"))
-
-	print("\nSaving Nets")
-	pickle.dump(nets, open("nets.txt","wb"))
 
 
 '''
@@ -121,7 +101,7 @@ def avrgGame(net):
 	
 	for i in range(10):
 		try:
-			avrgScore = runGame(TABLE.copy(), net)[0]
+			avrgScore, net, avgError = runGame(TABLE.copy(), net)
 			errored=False
 			break
 		except Exception as e:
@@ -135,19 +115,22 @@ def avrgGame(net):
 		return [0, net]
 	
 
-	# run it a total of 1000 times, 9999 extra and 1 starting
-	for i in tqdm(range(999)):
+	# run it a total of 500 times, 499 extra and 1 starting
+	for i in tqdm(range(499)):
 		try:
-			thisGame, net = runGame(TABLE.copy(), net)
+			thisGame, net, percentError = runGame(TABLE.copy(), net)
 		
 			avrgScore+=thisGame
+			avgError+=percentError
 
 			avrgScore/=2
+			avgError/=2
+
 		except Exception as e:
 			print(e)
 	
 	# return the avrg score, the net and whatever errors it had
-	return [avrgScore, net]
+	return [avrgScore, net, avgError]
 
 
 def getMtNumb(TABLE):
@@ -195,6 +178,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 	done=False
 	gmBonus=.05
 	invalidMoves=0
+	z=0
 	while True:
 		
 		n = netInput(net, TABLE)
@@ -213,7 +197,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 
 		for i, d in enumerate(["w", "a", "s", "d"]):
 			if directionIsValid(d, TABLE):
-				targs[i+3]=1
+				targs[i+4]=1
 
 
 		if not np.array_equal(new_table, TABLE):
@@ -227,12 +211,12 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 			
 
 		if gameOver(TABLE):
-			net.reward-=5
+			net.reward-=1
 			done=True
 			
 		
 
-		targs[indexy]=maxMin(net.reward)
+		targs[indexy]+=maxMin(net.reward)
 
 		'''print(
     	"reward:", net.reward,
@@ -240,17 +224,27 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
    		 "mtDif:", mtDif
 )'''
 
-		net.trianOutLayer(targs, .0005)
+		net.trianOutLayer(targs, .00005)
 
+		if z<iterations:
+			'''
 
+			stwing=""
 
+			
+			print(f"\n{targs}")
+			print(n)
+
+			#time.sleep(.25)
+			#'''
+			z=iterations
 		
 		if done:
 			break
 	
 	#print(f"Percent invalid: {(invalidMoves/(invalidMoves+iterations))*100}%")
 
-	return (getScore(TABLE), net)
+	return (getScore(TABLE), net, (invalidMoves/(invalidMoves+iterations))*100)
 
 
 	
