@@ -1,4 +1,6 @@
-import random, math, tqdm
+import random, math
+from tqdm import tqdm
+
 
 class Nuron():
         def __init__(self, weights, bias):
