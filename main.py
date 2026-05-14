@@ -59,8 +59,6 @@ def buildTable(netStats, lastRuntime, lastUpdateTime):
 
 if __name__ == "__main__":
 
-	TABLE=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-
 	nets=[]
 	#nets=genNewNets(4)
 
@@ -73,7 +71,7 @@ if __name__ == "__main__":
 	nets=[]
 	for scoreNet in scoreNets:
 		nets+=[scoreNet[1]]
-	
+
 	proccesses=[]
 
 	print("Building Proccesses")

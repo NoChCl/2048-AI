@@ -17,25 +17,8 @@ def avrgGame(net):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 	
-	errors=[]
 	
-	# try 10 times to get valid starting avrg
-	# if ever succede, move on, else, try again
-	
-	for i in range(10):
-		try:
-			avrgScore, net, avgError = runGame(TABLE.copy(), net)
-			errored=False
-			break
-		except Exception as e:
-			if str(e) != "'builtin_function_or_method' object is not iterable":
-				print(e)
-			errored=True
-			
-			
-	# after 10 times, its a lost cause, write it off as a 0
-	if errored:
-		return [0, net]
+	avrgScore, net, avgError = runGame(TABLE.copy(), net)
 	
 
 	# run it a total of 500 times, 499 extra and 1 starting
@@ -147,7 +130,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
    		 "mtDif:", mtDif
 )'''
 
-		net.trianOutLayer(targs, .00005)
+		net.trainOutLayer(targs, .00005)
 
 		if z<iterations:
 			'''

@@ -13,6 +13,7 @@ class Nuron():
                 self.rawOutput = 0
                 self.output = 0
                 self.error = 0
+                self.delta=0
 
 
         def update(self, vals):
@@ -28,12 +29,16 @@ class Nuron():
                 self.output=sigmoid(self.rawOutput)
                 return self.output
 
-        def train(self, targ, lr):
-              error=targ-self.output
+        def train(self, delta, lr):
+              self.delta=delta
 
               for i in range(self.inputNumb):
-                    self.weights[i]+=lr*error*self.lastInputs[i]
-              self.bias+=lr*error
+                    self.weights[i]+=(
+                          lr*
+                          self.delta*
+                          self.lastInputs[i]
+                    )
+              self.bias+=lr*self.delta
 
 
 class NuralNet():
@@ -65,28 +70,56 @@ class NuralNet():
                                 layerOuts+=[nuron.output]
                         self.outputs+=[layerOuts]
 
-        def trianOutLayer(self, targs, lr):
-              
-              outLayer=self.nurons[-1]
+        def trainOutLayer(self, targs, lr):
 
-              for i, nuron in enumerate(outLayer):
-                    nuron.train(targs[i], lr)
-              self.reward=0
+                outLayer = self.nurons[-1]
+
+                for i, neuron in enumerate(outLayer):
+
+                        error = targs[i] - neuron.output
+
+                        delta = (
+                                error *
+                                sigmoidDeriv(neuron.output)
+                        )
+
+                        neuron.train(delta, lr)
+
+
+        def backPropHidden(self, lr):
+
+                for layerIndex in reversed(range(len(self.nurons)-1)):
+
+                        layer = self.nurons[layerIndex]
+                        nextLayer = self.nurons[layerIndex + 1]
+
+                        for i, neuron in enumerate(layer):
+
+                                error = 0
+
+                                for nextNeuron in nextLayer:
+
+                                        error += (
+                                        nextNeuron.weights[i]
+                                        * nextNeuron.delta
+                                        )
+
+                                delta = (
+                                        error *
+                                        sigmoidDeriv(neuron.output)
+                                )
+
+                                neuron.train(delta, lr)
                         
-class AI():
-  def __init__(self):
-    self.score=0
-  def giveScore(self, score):
-    self.score+=score
     
 def maxMin(targ):
       return max(-.5, min(.5, targ))
 
 def sigmoid(n):
         return 1/(1+(math.e**-n))
-def sigmoidDeriv(x):
-    s = sigmoid(x)
-    return s * (1 - s)
+
+def sigmoidDeriv(output):
+    return output * (1 - output)
                         
 
 def netInput(myNet,t):
