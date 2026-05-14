@@ -13,78 +13,7 @@ RIGHT = 'right'
 
 
 
-
-'''
-def worker(net, queue):
-	result = avrgGame(net)
-	
-	queue.put(result)
-	
-
-
-
-def main():
-	print("\nLoading Generated Nets")
-	
-	nets = pickle.load(open("nets.txt", "rb"))
-
-
-	print("\nRunning Nets")
-	
-	MAX_PROCESSES = max(multiprocessing.cpu_count() - 2, 1)
-		
-	scoreNet = []
-	
-	queue = multiprocessing.Queue()
-	
-	processes = []
-	
-	active = 0
-	
-	for net in tqdm(nets):
-		
-		while active>=MAX_PROCESSES:
-			if not queue.empty():
-				scoreNet.append(queue.get())
-			
-			processes = remvDedProc(processes)
-			active=len(processes)
-			
-		p = multiprocessing.Process(target=worker, args=(net, queue))
-		p.start()
-		active+=1
-		processes.append(p)
-		
-		
-
-			
-	while active !=0:
-		if not queue.empty():
-			scoreNet.append(queue.get())
-		processes = remvDedProc(processes)
-		active=len(processes)
-
-
-	# Collect finished processes
-	while not queue.empty():
-		scoreNet.append(queue.get())
-
-	
-	print("\nSaving SCORE NETS")
-	
-	pickle.dump(scoreNet, open("scoreNet.txt", "wb"))
-	
-def remvDedProc(processes):
-	for p in processes:
-		if not p.is_alive():
-			p.join()
-			processes.remove(p)
-	return processes
-
-'''
-
-
-def avrgGame(net):
+def avrgGame(net, id):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 	
@@ -110,7 +39,7 @@ def avrgGame(net):
 	
 
 	# run it a total of 500 times, 499 extra and 1 starting
-	for i in tqdm(range(499)):
+	for i in tqdm(range(499), position=id, leave=True):
 		try:
 			thisGame, net, percentError = runGame(TABLE.copy(), net)
 		

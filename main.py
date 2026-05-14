@@ -1,15 +1,16 @@
-import time, pickle, queue
+import time, pickle, queue, multiprocessing
 from tqdm import tqdm
 from game import *
 from ai import *
 from readScoreNet import *
 
 
-def worker(net, id):
+def worker(net, id, queue):
 	while True:
-		result = avrgGame(net)
-		resultQueue.put((id, result))
+		result = avrgGame(net, id)
+		queue.put((id, result))
 		net=result[1]
+		print(f"Net {id}:\n\tAverage Percent Error: {result[2]}\n\tAverage Score: {result[0]}\n")
 
 
 
@@ -20,54 +21,41 @@ if __name__ == "__main__":
 	nets=[]
 	#nets=genNewNets(4)
 
-	resultQueue = queue.Queue()
+	queue = multiprocessing.Queue()
 
-	
-	
+	print("\nLoading Generated Nets")
 
-	it=0
+	nets=pickle.load(open("nets.txt","rb"))
+	
+	scoreNet = [None] * len(nets)
+	
+	print("\nRunning Nets")
+
+	proccesses=[]
+
+	for i, net in enumerate(tqdm(nets)):
+
+		proccesses += [multiprocessing.Process(target=worker, args=(net, i, queue))]
+		proccesses[-1].start()
+		
+
+	n=0
 	while True:
 		
-		
-		print("\nLoading Generated Nets")
-	
-		nets=pickle.load(open("nets.txt","rb"))
-		
-		scoreNet=[]
-		
-		print("\nRunning Nets")
-		
-		
-		for i, net in enumerate(tqdm(nets)):
+		id, thisScoreNet=queue.get()
+		n+=1
 
-			scoreNet += [avrgGame(net)]   
+		nets[id]=thisScoreNet[1]
+
+		scoreNet[id]=thisScoreNet
+		if n==4:
+			print("\nSaving SCORE NETS")
+			with open("scoreNet.txt","wb") as f: pickle.dump(scoreNet, f)
 			
-			net=scoreNet[-1][1]
+			print("\nSaving Nets")
+			with open("nets.txt","wb") as f: pickle.dump(nets, f)
+			
+			n=0
 
-			if i%1000==0:
-				#sleep(3)
-				pass
 		
-		
-		print("\nSaving SCORE NETS")
-		pickle.dump(scoreNet, open("scoreNet.txt","wb"))
-
-		print("\nSaving Nets")
-		pickle.dump(nets, open("nets.txt","wb"))
-		
-
-		print("\033[H\033[2J", end="")
-		
-
-		strin="\nScores: "
-
-		for score in scoreNet: strin+= f"{score[0]}, "
-		strin+="\nPercent Errors: "
-		for score in scoreNet: strin+= f"{score[2]}, "
-
-		print(strin)
-
-		it+=1
-		
-		print(f"Itterations: {it}")
 
