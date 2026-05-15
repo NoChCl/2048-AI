@@ -110,7 +110,10 @@ class NuralNet():
                                 )
 
                                 neuron.train(delta, lr)
-                        
+        def train(self, targs):
+               lr=.0001
+               self.trainOutLayer(targs, lr)
+               self.backPropHidden(lr)
     
 def maxMin(targ):
       return max(-.5, min(.5, targ))

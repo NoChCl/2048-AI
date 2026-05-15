@@ -13,18 +13,17 @@ RIGHT = 'right'
 
 
 
-def avrgGame(net):
+def avrgGame(net, logQueue, id):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 	
-	
-	avrgScore, net, avgError = runGame(TABLE.copy(), net)
+	avrgScore, net, avgError = runGame(TABLE.copy(), net, logQueue, id)
 	
 
 	# run it a total of 500 times, 499 extra and 1 starting
 	for i in range(499):
 		try:
-			thisGame, net, percentError = runGame(TABLE.copy(), net)
+			thisGame, net, percentError = runGame(TABLE.copy(), net, logQueue, id)
 		
 			avrgScore+=thisGame
 			avgError+=percentError
@@ -33,8 +32,7 @@ def avrgGame(net):
 			avgError/=2
 
 		except Exception as e:
-			print(e)
-	
+			logQueue.put((id, "ERROR", str(e)))
 	# return the avrg score, the net and whatever errors it had
 	return [avrgScore, net, avgError]
 
@@ -76,17 +74,15 @@ def getScore(table):
 	return np.sum(table)
 
 
-def runGame(TABLE, net=NuralNet(16,make()[1])):
+def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 	TABLE=randomfill(TABLE)
 	TABLE=randomfill(TABLE)
 	iterations=1
 	oldMT=16
 	done=False
-	gmBonus=.05
 	invalidMoves=0
 	z=0
 	while True:
-		
 		n = netInput(net, TABLE)
 
 		indexy=np.argmax(n[:4])
@@ -99,7 +95,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 		oldMT=mt
 		targs=[.5,.5,.5,.5, 0, 0, 0, 0, mt/16]
 
-		net.reward=(mtDif*.15)
+		net.reward=(max(mtDif*.15, -.1))
 
 		for i, d in enumerate(["w", "a", "s", "d"]):
 			if directionIsValid(d, TABLE):
@@ -108,12 +104,15 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
 
 		if not np.array_equal(new_table, TABLE):
 			TABLE = randomfill(new_table)
-			net.reward+=gmBonus
-			net.reward+=.05*iterations
+			net.reward+=.05
 			iterations+=1
 		else:
 			net.reward-=.8
 			invalidMoves+=1
+
+			if invalidMoves>500:
+				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
+				done=True
 			
 
 		if gameOver(TABLE):
@@ -130,7 +129,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1])):
    		 "mtDif:", mtDif
 )'''
 
-		net.trainOutLayer(targs, .00005)
+		net.train(targs)
 
 		if z<iterations:
 			'''

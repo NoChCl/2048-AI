@@ -4,20 +4,20 @@ from game import *
 from ai import *
 from readScoreNet import *
 
-import time, pickle, multiprocessing
 from rich.live import Live
 from rich.table import Table
+from rich.panel import Panel
+from rich.layout import Layout
 
 
-def worker(net, id, outQueue):
-	print(f"Worker {id} started")
+def worker(net, id, outQueue, logQueue):
+	logQueue.put((id, "INFO", f"Worker {id} started"))
 	while True:
 		startTime=time.time()
-		result = avrgGame(net)
+		result = avrgGame(net, logQueue, id)
 		runTime=time.time()-startTime
 		outQueue.put((id, result, runTime))
 		net=result[1]
-		#print(f"\n\n\n\nNet {id}:\n\tAverage Percent Error: {result[2]}\n\tAverage Score: {result[0]}\n")
 
 
 def buildTable(netStats, lastRuntime, lastUpdateTime):
@@ -56,11 +56,28 @@ def buildTable(netStats, lastRuntime, lastUpdateTime):
 
 	return table
 
+def buildLogs(logs):
+
+	text = ""
+
+	for entry in logs:
+
+		id, level, msg = entry[0]
+
+		text += f"{entry[1]}: [{level}] Net {id}: {msg}\n"
+
+	return Panel(text, title="Logs")
+
+def getTime():
+	return time.strftime("%H:%M:%S", time.localtime()) + f".{int((time.time() % 1) * 1000):03d}"
 
 if __name__ == "__main__":
 
 	nets=[]
-	#nets=genNewNets(4)
+	
+	logQueue = multiprocessing.Queue()
+	logs = []
+	maxLogs = 10
 
 	outputQueue = multiprocessing.Queue()
 
@@ -72,20 +89,33 @@ if __name__ == "__main__":
 	for scoreNet in scoreNets:
 		nets+=[scoreNet[1]]
 
-	proccesses=[]
+	#x=genNewNets(3)
+	#x+=[nets[3]]
+	#nets=x
 
 	print("Building Proccesses")
-
+	proccesses=[]
 	for i, net in enumerate(nets):
 
-		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue))]
+		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue))]
 		proccesses[-1].start()
-		
 	n = 0
 	runTime=[0,0,0,0]
 	lastUpdateTime=[time.time(), time.time(), time.time(), time.time()]
 
-	with Live(buildTable(scoreNets, runTime, lastUpdateTime), refresh_per_second=4) as live:
+	layout = Layout()
+
+	layout.split_column(
+		Layout(name="table"),
+		Layout(name="logs", size=10)
+
+	)
+
+	
+
+
+
+	with Live(layout, refresh_per_second=4) as live:
 
 		
 
@@ -109,7 +139,21 @@ if __name__ == "__main__":
 					n = 0
 			except queue.Empty:
 				pass
+			try:
+				msg = logQueue.get_nowait()
 
-			live.update(buildTable(scoreNets, runTime, lastUpdateTime))
+				logs.append([msg, getTime()])
+
+				if len(logs) > maxLogs:
+					logs.pop(0)
+
+			except queue.Empty:
+				pass
+			
+			layout["table"].update(buildTable(scoreNets, runTime, lastUpdateTime))
+			layout["logs"].update(buildLogs(logs))
+
+			live.update(layout)
+
 			
 
