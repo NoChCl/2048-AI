@@ -2,7 +2,7 @@ import pygame, math, sys
 #defining the window size and other different specifications of the window
 FPS = 5
 WINDOWWIDTH = 640
-WINDOWHEIGHT = 640
+WINDOWHEIGHT = 740
 boxsize = min(WINDOWWIDTH,WINDOWHEIGHT)//4;
 margin = 5
 thickness = 0
