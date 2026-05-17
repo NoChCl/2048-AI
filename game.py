@@ -94,8 +94,13 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 		mtDif=mt-oldMT
 		oldMT=mt
 		targs=[.5,.5,.5,.5, 0, 0, 0, 0, mt/16]
+		
+		if mtDif<0:
+			net.reward=-.5/13
+		else:
+			net.reward=(((mtDif+1)**1.25)-.5)/13
 
-		net.reward=(max(mtDif*.15, -.1))
+		net.reward+=(mt-2)/160
 
 		for i, d in enumerate(["w", "a", "s", "d"]):
 			if directionIsValid(d, TABLE):
@@ -116,7 +121,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 			
 
 		if gameOver(TABLE):
-			net.reward-=1
+			#net.reward-=1
 			done=True
 			
 		

@@ -83,15 +83,14 @@ if __name__ == "__main__":
 
 	print("\nLoading Nets")
 
-	with open("scoreNet.txt","rb") as f: scoreNets = pickle.load(f)
+	with open("scoreNet.pkl","rb") as f: scoreNets = pickle.load(f)
 
 	nets=[]
 	for scoreNet in scoreNets:
 		nets+=[scoreNet[1]]
 
-	#x=genNewNets(3)
-	#x+=[nets[3]]
-	#nets=x
+	
+	#nets=genNewNets(4)
 
 	print("Building Proccesses")
 	proccesses=[]
@@ -133,7 +132,7 @@ if __name__ == "__main__":
 
 				if n == len(scoreNets):
 
-					with open("scoreNet.txt", "wb") as f:
+					with open("scoreNet.pkl", "wb") as f:
 						pickle.dump(scoreNets, f)
 
 					n = 0
