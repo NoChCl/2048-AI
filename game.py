@@ -10,6 +10,8 @@ DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
 
+LETTERS = ['w', 'a', 's', 'd']
+
 
 
 
@@ -81,15 +83,20 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 	oldMT=16
 	done=False
 	invalidMoves=0
-	z=0
+	last3=[]
 	while True:
 		n = netInput(net, TABLE)
 
 		indexy=np.argmax(n[:4])
-		direction = ["w", "a", "s", "d"][indexy]
+		direction = LETTERS[indexy]
+		last3+=[indexy]
+		oldTable=TABLE.copy()
 		new_table = key(direction, TABLE.copy())
 
 		
+
+
+
 		mt=getMtNumb(new_table)
 		mtDif=mt-oldMT
 		oldMT=mt
@@ -102,9 +109,24 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 
 		net.reward+=(mt-2)/160
 
-		for i, d in enumerate(["w", "a", "s", "d"]):
-			if directionIsValid(d, TABLE):
-				targs[i+4]=1
+		if len(last3)>3:
+			last3=last3[-3:]
+			if indexy<=1:
+				dirOpposite=LETTERS[indexy+2]
+			else:
+				dirOpposite=LETTERS[indexy-2]
+			if dirOpposite==last3[-2]:
+				net.reward-=.03
+			elif dirOpposite==last3[-3]:
+				net.reward-=.015
+		elif len(last3)==2:
+			if indexy<=1:
+				dirOpposite=LETTERS[indexy+2]
+			else:
+				dirOpposite=LETTERS[indexy-2]
+			if dirOpposite==last3[-2]:
+				net.reward-=.03
+
 
 
 		if not np.array_equal(new_table, TABLE):
@@ -134,25 +156,18 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
    		 "mtDif:", mtDif
 )'''
 
+		for i, d in enumerate(["w", "a", "s", "d"]):
+			if directionIsValid(d, oldTable):
+				targs[i+4]=1
+			else:
+				targs[i]=0
+
 		net.train(targs)
-
-		if z<iterations:
-			'''
-
-			stwing=""
-
-			
-			print(f"\n{targs}")
-			print(n)
-
-			#time.sleep(.25)
-			#'''
-			z=iterations
-		
 		if done:
 			break
 	
 	#print(f"Percent invalid: {(invalidMoves/(invalidMoves+iterations))*100}%")
+
 
 	return (getScore(TABLE), net, (invalidMoves/(invalidMoves+iterations))*100)
 

@@ -13,11 +13,14 @@ from rich.layout import Layout
 def worker(net, id, outQueue, logQueue):
 	logQueue.put((id, "INFO", f"Worker {id} started"))
 	while True:
-		startTime=time.time()
-		result = avrgGame(net, logQueue, id)
-		runTime=time.time()-startTime
-		outQueue.put((id, result, runTime))
-		net=result[1]
+		try:
+			startTime=time.time()
+			result = avrgGame(net, logQueue, id)
+			runTime=time.time()-startTime
+			outQueue.put((id, result, runTime))
+			net=result[1]
+		except Exception as e:
+			logQueue.put((id, "ERROR", str(e)))
 
 
 def buildTable(netStats, lastRuntime, lastUpdateTime):
@@ -81,21 +84,24 @@ if __name__ == "__main__":
 
 	outputQueue = multiprocessing.Queue()
 
-	print("\nLoading Nets")
+	makeNewNets = False
 
-	with open("scoreNet.pkl","rb") as f: scoreNets = pickle.load(f)
+	if not makeNewNets:
+		print("\nLoading Nets")
 
-	nets=[]
-	for scoreNet in scoreNets:
-		nets+=[scoreNet[1]]
+		with open("scoreNet.pkl","rb") as f: scoreNets = pickle.load(f)
 
-	
-	#nets=genNewNets(4)
+		nets=[]
+		for scoreNet in scoreNets:
+			nets+=[scoreNet[1]]
+
+	else:
+		nets=genNewNets(4)
+		scoreNets=[[0, net, 100] for net in nets]
 
 	print("Building Proccesses")
 	proccesses=[]
 	for i, net in enumerate(nets):
-
 		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue))]
 		proccesses[-1].start()
 	n = 0
