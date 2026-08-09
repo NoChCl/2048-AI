@@ -89,12 +89,9 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 
 		indexy=np.argmax(n[:4])
 		direction = LETTERS[indexy]
-		last3+=[indexy]
+		last3+=[direction]
 		oldTable=TABLE.copy()
 		new_table = key(direction, TABLE.copy())
-
-		
-
 
 
 		mt=getMtNumb(new_table)
