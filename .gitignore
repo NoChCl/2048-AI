@@ -1,3 +1,2 @@
 *.txt
-scoreNet.pkl
-scoreNetOld.pkl
+*.pkl
