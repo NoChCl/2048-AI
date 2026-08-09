@@ -1,1 +1,3 @@
 *.txt
+scoreNet.pkl
+scoreNetOld.pkl
