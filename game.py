@@ -18,25 +18,29 @@ LETTERS = ['w', 'a', 's', 'd']
 def avrgGame(net, logQueue, id):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
-	
-	avrgScore, net, avgError = runGame(TABLE.copy(), net, logQueue, id)
-	
 
-	# run it a total of 500 times, 499 extra and 1 starting
-	for i in range(499):
+	sumScore=0
+	sumError=0
+	gamesPlayed=0
+	
+	
+	for i in range(500):
 		try:
 			thisGame, net, percentError = runGame(TABLE.copy(), net, logQueue, id)
 		
-			avrgScore+=thisGame
-			avgError+=percentError
+			sumScore+=thisGame
+			sumError+=percentError
+			gamesPlayed+=1
 
-			avrgScore/=2
-			avgError/=2
 
 		except Exception as e:
 			logQueue.put((id, "ERROR", str(e)))
+
+	avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
+	avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
+
 	# return the avrg score, the net and whatever errors it had
-	return [avrgScore, net, avgError]
+	return [avgScore, net, avgError]
 
 
 def getMtNumb(TABLE):
