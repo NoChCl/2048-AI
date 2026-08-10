@@ -43,19 +43,18 @@ def runDemo(net):
 	print("starting demo")
 	oldMT=getMtNumb(TABLE)
 	displayTable=TABLE.copy()
-	first=True
 	targs=[.5,.5,.5,.5, 0, 0, 0, 0, oldMT/16]
+	iterations=1
 	with Live(makeDemoTable(targs, targs), refresh_per_second=10) as live:
 		while True:
 			disp.FPSCLOCK.tick(FPS)
 			disp.update(displayTable)
 			displayTable=TABLE.copy()
 
-			if not first:
+			if iterations != 1:
 				while not disp.buttonPressed():
 					disp.FPSCLOCK.tick(FPS)
 
-			first=False
 
 			n = netInput(net, TABLE)
 
