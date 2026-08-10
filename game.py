@@ -191,75 +191,51 @@ def directionIsValid(direction, oldTable):
 
 
 def key(direction, TABLE):
-	if direction == 'w':
-		for pi in range(1, 4):
-			for pj in range(4):
-				if TABLE[pi][pj] != 0:
-					TABLE = moveup(pi, pj, TABLE)
-	elif direction == 's':
-		for pi in range(2, -1, -1):
-			for pj in range(4):
-				if TABLE[pi][pj] != 0:
-					TABLE = movedown(pi, pj, TABLE)
-	elif direction == 'a':
-		for pj in range(1, 4):
-			for pi in range(4):
-				if TABLE[pi][pj] != 0:
-					TABLE = moveleft(pi, pj, TABLE)
-	elif direction == 'd':
-		for pj in range(2, -1, -1):
-			for pi in range(4):
-				if TABLE[pi][pj] != 0:
-					TABLE = moveright(pi, pj, TABLE)
-	return TABLE
+    # Work on a copy so the operation is atomic.
+    newTable = TABLE.copy()
 
-def movedown(pi, pj, T):
-	justcomb = False
-	while pi < 3 and (T[pi+1][pj] == 0 or (T[pi+1][pj] == T[pi][pj] and not justcomb)):
-		if T[pi+1][pj] == 0:
-			T[pi+1][pj] = T[pi][pj]
-		elif T[pi+1][pj] == T[pi][pj]:
-			T[pi+1][pj] += T[pi][pj]
-			justcomb = True
-		T[pi][pj] = 0
-		pi += 1
-	return T
+    def processLine(line):
+        # Remove empty spaces
+        line = [x for x in line if x != 0]
 
-def moveleft(pi, pj, T):
-	justcomb = False
-	while pj > 0 and (T[pi][pj-1] == 0 or (T[pi][pj-1] == T[pi][pj] and not justcomb)):
-		if T[pi][pj-1] == 0:
-			T[pi][pj-1] = T[pi][pj]
-		elif T[pi][pj-1] == T[pi][pj]:
-			T[pi][pj-1] += T[pi][pj]
-			justcomb = True
-		T[pi][pj] = 0
-		pj -= 1
-	return T
+        result = []
+        i = 0
 
-def moveright(pi, pj, T):
-	justcomb = False
-	while pj < 3 and (T[pi][pj+1] == 0 or (T[pi][pj+1] == T[pi][pj] and not justcomb)):
-		if T[pi][pj+1] == 0:
-			T[pi][pj+1] = T[pi][pj]
-		elif T[pi][pj+1] == T[pi][pj]:
-			T[pi][pj+1] += T[pi][pj]
-			justcomb = True
-		T[pi][pj] = 0
-		pj += 1
-	return T
+        while i < len(line):
+            # If this tile can merge with the next one,
+            # merge them and skip BOTH original tiles.
+            if i + 1 < len(line) and line[i] == line[i + 1]:
+                result.append(line[i] * 2)
+                i += 2
+            else:
+                result.append(line[i])
+                i += 1
 
-def moveup(pi, pj, T):
-	justcomb = False
-	while pi > 0 and (T[pi-1][pj] == 0 or (T[pi-1][pj] == T[pi][pj] and not justcomb)):
-		if T[pi-1][pj] == 0:
-			T[pi-1][pj] = T[pi][pj]
-		elif T[pi-1][pj] == T[pi][pj]:
-			T[pi-1][pj] += T[pi][pj]
-			justcomb = True
-		T[pi][pj] = 0
-		pi -= 1
-	return T
+        # Fill remaining spaces with zeros
+        result += [0] * (4 - len(result))
+
+        return result
+
+    if direction == 'a':  # left
+        for i in range(4):
+            newTable[i] = processLine(TABLE[i])
+
+    elif direction == 'd':  # right
+        for i in range(4):
+            line = processLine(TABLE[i][::-1])
+            newTable[i] = line[::-1]
+
+    elif direction == 'w':  # up
+        for j in range(4):
+            line = processLine(TABLE[:, j])
+            newTable[:, j] = line
+
+    elif direction == 's':  # down
+        for j in range(4):
+            line = processLine(TABLE[::-1, j])
+            newTable[:, j] = line[::-1]
+
+    return newTable
 
 
 
