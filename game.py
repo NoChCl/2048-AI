@@ -91,84 +91,92 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 	while True:
 		n = netInput(net, TABLE)
 
-		indexy=np.argmax(n[:4])
-		direction = LETTERS[indexy]
-		last3+=[direction]
-		oldTable=TABLE.copy()
-		new_table = key(direction, TABLE.copy())
+		realI=np.argmax(n[:4])
+
+		targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
+
+		numList=[0,1,2,3]
+		numList+=[numList.pop(realI)]
+
+		trueTable=TABLE.copy()
+		trueLast3=last3.copy()
+
+		for i in numList:
+			last3=trueLast3.copy()
+			TABLE=trueTable.copy()
+			direction = LETTERS[i]
+			last3+=[direction]
+			new_table = key(direction, TABLE.copy())
 
 
-		mt=getMtNumb(new_table)
-		mtDif=mt-oldMT
+			mt=getMtNumb(new_table)
+			mtDif=mt-oldMT
+			
+			if mtDif<0:
+				net.reward=-.5/13
+			else:
+				net.reward=(((mtDif+1)**1.25)-.5)/13
+
+			net.reward+=(mt-2)/160
+
+			if len(last3)>3:
+				last3=last3[-3:]
+				if i<=1:
+					dirOpposite=LETTERS[i+2]
+				else:
+					dirOpposite=LETTERS[i-2]
+				if dirOpposite==last3[-2]:
+					net.reward-=.03
+				elif dirOpposite==last3[-3]:
+					net.reward-=.015
+			elif len(last3)==2:
+				if i<=1:
+					dirOpposite=LETTERS[i+2]
+				else:
+					dirOpposite=LETTERS[i-2]
+				if dirOpposite==last3[-2]:
+					net.reward-=.03
+
+
+
+			if not np.array_equal(new_table, TABLE):
+				TABLE = randomfill(new_table)
+				net.reward+=.05
+				if i == realI:
+					iterations += 1
+			else:
+				net.reward-=.8
+				if i == realI:
+					invalidMoves+=1
+					if invalidMoves>500:
+						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
+						done=True
+				
+
+			if gameOver(TABLE):
+				net.reward-=.25
+				if i == realI:
+					done=True
+
+			targs[i]+=maxMin(net.reward)
+
+
+
+		for x, d in enumerate(["w", "a", "s", "d"]):
+			if directionIsValid(d, trueTable):
+				targs[x+4]=1
+			else:
+				targs[x]=0
+
+		targs[-1]=mt/16
+
 		oldMT=mt
-		targs=[.5,.5,.5,.5, 0, 0, 0, 0, mt/16]
-		
-		if mtDif<0:
-			net.reward=-.5/13
-		else:
-			net.reward=(((mtDif+1)**1.25)-.5)/13
 
-		net.reward+=(mt-2)/160
-
-		if len(last3)>3:
-			last3=last3[-3:]
-			if indexy<=1:
-				dirOpposite=LETTERS[indexy+2]
-			else:
-				dirOpposite=LETTERS[indexy-2]
-			if dirOpposite==last3[-2]:
-				net.reward-=.03
-			elif dirOpposite==last3[-3]:
-				net.reward-=.015
-		elif len(last3)==2:
-			if indexy<=1:
-				dirOpposite=LETTERS[indexy+2]
-			else:
-				dirOpposite=LETTERS[indexy-2]
-			if dirOpposite==last3[-2]:
-				net.reward-=.03
-
-
-
-		if not np.array_equal(new_table, TABLE):
-			TABLE = randomfill(new_table)
-			net.reward+=.05
-			iterations+=1
-		else:
-			net.reward-=.8
-			invalidMoves+=1
-
-			if invalidMoves>500:
-				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
-				done=True
-			
-
-		if gameOver(TABLE):
-			#net.reward-=1
-			done=True
-			
-		
-
-		targs[indexy]+=maxMin(net.reward)
-
-		'''print(
-    	"reward:", net.reward,
-   		 "move:", direction,
-   		 "mtDif:", mtDif
-)'''
-
-		for i, d in enumerate(["w", "a", "s", "d"]):
-			if directionIsValid(d, oldTable):
-				targs[i+4]=1
-			else:
-				targs[i]=0
 
 		net.train(targs)
 		if done:
 			break
 	
-	#print(f"Percent invalid: {(invalidMoves/(invalidMoves+iterations))*100}%")
-
 
 	return (getScore(TABLE), net, (invalidMoves/(invalidMoves+iterations))*100)
 
