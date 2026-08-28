@@ -111,7 +111,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 				if i == realI:
 					iterations += 1
 			else:
-				net.reward=-.2
+				net.reward=-.5
 				if i == realI:
 					invalidMoves+=1
 					if invalidMoves>500:
