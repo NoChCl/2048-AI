@@ -84,10 +84,8 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 	TABLE=randomfill(TABLE)
 	TABLE=randomfill(TABLE)
 	iterations=1
-	oldMT=16
 	done=False
 	invalidMoves=0
-	last3=[]
 	while True:
 		n = netInput(net, TABLE)
 
@@ -99,59 +97,32 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 		numList+=[numList.pop(realI)]
 
 		trueTable=TABLE.copy()
-		trueLast3=last3.copy()
 
 		for i in numList:
-			last3=trueLast3.copy()
 			TABLE=trueTable.copy()
 			direction = LETTERS[i]
-			last3+=[direction]
 			new_table = key(direction, TABLE.copy())
-
-
-			mt=getMtNumb(new_table)
-			mtDif=mt-oldMT
-			
-			if mtDif<0:
-				net.reward=-.5/13
-			else:
-				net.reward=(((mtDif+1)**1.25)-.5)/13
-
-			net.reward+=(mt-2)/160
-
-			if len(last3)>3:
-				last3=last3[-3:]
-				if i<=1:
-					dirOpposite=LETTERS[i+2]
-				else:
-					dirOpposite=LETTERS[i-2]
-				if dirOpposite==last3[-2]:
-					net.reward-=.03
-				elif dirOpposite==last3[-3]:
-					net.reward-=.015
-			elif len(last3)==2:
-				if i<=1:
-					dirOpposite=LETTERS[i+2]
-				else:
-					dirOpposite=LETTERS[i-2]
-				if dirOpposite==last3[-2]:
-					net.reward-=.03
 
 
 
 			if not np.array_equal(new_table, TABLE):
 				TABLE = randomfill(new_table)
-				net.reward+=.05
+				net.reward=.1
 				if i == realI:
 					iterations += 1
 			else:
-				net.reward-=.8
+				net.reward=-.2
 				if i == realI:
 					invalidMoves+=1
 					if invalidMoves>500:
 						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 						done=True
-				
+
+			validSecondaries=0
+			for x, d in enumerate(["w", "a", "s", "d"]):
+				if directionIsValid(d, TABLE):
+					validSecondaries+=1
+			
 
 			if gameOver(TABLE):
 				net.reward-=.25
@@ -168,9 +139,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 			else:
 				targs[x]=0
 
-		targs[-1]=mt/16
 
-		oldMT=mt
 
 
 		net.train(targs)
