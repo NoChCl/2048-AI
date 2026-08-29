@@ -115,7 +115,10 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 				for x, d in enumerate(["w", "a", "s", "d"]):
 					if directionIsValid(d, TABLE):
 						validSecondaries+=1
-						
+				if validSecondaries == 0:
+					net.reward=-.2
+				net.reward+=.1*validSecondaries
+
 			else:
 				net.reward=-.5
 				if i == realI:
@@ -124,8 +127,6 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 						done=True
 
-
-			
 
 			if gameOver(TABLE):
 				net.reward-=.25
