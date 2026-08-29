@@ -41,9 +41,8 @@ def runDemo(net):
 	print("starting pygame")
 	disp=myPygame()
 	print("starting demo")
-	oldMT=getMtNumb(TABLE)
 	displayTable=TABLE.copy()
-	targs=[.5,.5,.5,.5, 0, 0, 0, 0, oldMT/16]
+	targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
 	iterations=1
 	with Live(makeDemoTable(targs, targs), refresh_per_second=10) as live:
 		while True:
@@ -66,53 +65,32 @@ def runDemo(net):
 			numList+=[numList.pop(realI)]
 
 			trueTable=TABLE.copy()
-			trueLast3=last3.copy()
 
 			for i in numList:
-				last3=trueLast3.copy()
+
 				TABLE=trueTable.copy()
 				direction = LETTERS[i]
-				last3+=[direction]
 				new_table = key(direction, TABLE.copy())
 
-
-				mt=getMtNumb(new_table)
-				mtDif=mt-oldMT
-				
-				if mtDif<0:
-					net.reward=-.5/13
-				else:
-					net.reward=(((mtDif+1)**1.25)-.5)/13
-
-				net.reward+=(mt-2)/160
-
-				if len(last3)>3:
-					last3=last3[-3:]
-					if i<=1:
-						dirOpposite=LETTERS[i+2]
-					else:
-						dirOpposite=LETTERS[i-2]
-					if dirOpposite==last3[-2]:
-						net.reward-=.03
-					elif dirOpposite==last3[-3]:
-						net.reward-=.015
-				elif len(last3)==2:
-					if i<=1:
-						dirOpposite=LETTERS[i+2]
-					else:
-						dirOpposite=LETTERS[i-2]
-					if dirOpposite==last3[-2]:
-						net.reward-=.03
 
 
 
 				if not np.array_equal(new_table, TABLE):
 					TABLE = randomfill(new_table)
-					net.reward+=.05
+					net.reward=.1
 					if i == realI:
 						iterations += 1
+
+					validSecondaries=0
+					for x, d in enumerate(["w", "a", "s", "d"]):
+						if directionIsValid(d, TABLE):
+							validSecondaries+=1
+					if validSecondaries == 0:
+						net.reward=-.2
+					net.reward+=.1*validSecondaries
+					
 				else:
-					net.reward-=.8
+					net.reward-=.5
 					if i == realI:
 						disp.pygame.quit()
 						return "Net made an invalid move, ending demo."
@@ -133,10 +111,6 @@ def runDemo(net):
 					targs[x+4]=1
 				else:
 					targs[x]=0
-
-			targs[-1]=mt/16
-
-			oldMT=mt
 
 			live.update(makeDemoTable(targs, n))
 				
