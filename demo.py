@@ -34,7 +34,6 @@ def makeDemoTable(targs, actual):
 
 def runDemo(net):
 	LETTERS=["w","a","s","d"]
-	last3=[]
 	TABLE = np.zeros((4, 4), dtype=int)
 	TABLE=randomfill(TABLE)
 	TABLE=randomfill(TABLE)
@@ -67,12 +66,9 @@ def runDemo(net):
 			trueTable=TABLE.copy()
 
 			for i in numList:
-
 				TABLE=trueTable.copy()
 				direction = LETTERS[i]
 				new_table = key(direction, TABLE.copy())
-
-
 
 
 				if not np.array_equal(new_table, TABLE):
