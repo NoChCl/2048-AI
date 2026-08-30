@@ -85,7 +85,8 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 	TABLE=randomfill(TABLE)
 	iterations=1
 	done=False
-	invalidMoves=0
+	totalInvalidMoves=0
+	stateInvalidMoves=0
 	while True:
 		n = netInput(net, TABLE)
 
@@ -106,6 +107,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 
 
 			if not np.array_equal(new_table, TABLE):
+				stateInvalidMoves=0
 				TABLE = randomfill(new_table)
 				net.reward=.1
 				if i == realI:
@@ -122,8 +124,9 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 			else:
 				net.reward=-.5
 				if i == realI:
-					invalidMoves+=1
-					if invalidMoves>500:
+					totalInvalidMoves+=1
+					stateInvalidMoves+=1
+					if stateInvalidMoves>500:
 						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 						done=True
 
@@ -151,7 +154,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 			break
 	
 
-	return (getScore(TABLE), net, (invalidMoves/(invalidMoves+iterations))*100)
+	return (getScore(TABLE), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100)
 
 
 	
