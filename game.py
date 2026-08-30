@@ -22,6 +22,8 @@ def avrgGame(net, logQueue, id):
 	sumScore=0
 	sumError=0
 	gamesPlayed=0
+
+	highScore=0
 	
 	
 	for i in range(500):
@@ -32,6 +34,9 @@ def avrgGame(net, logQueue, id):
 			sumError+=percentError
 			gamesPlayed+=1
 
+			if thisGame > highScore:
+				highScore = thisGame
+				logQueue.put((id, "INFO", f"New high score achieved: {highScore}"))
 
 		except Exception as e:
 			logQueue.put((id, "ERROR", str(e)))
