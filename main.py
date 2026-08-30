@@ -10,12 +10,12 @@ from rich.panel import Panel
 from rich.layout import Layout
 
 
-def worker(net, id, outQueue, logQueue):
+def worker(net, id, outQueue, logQueue, scoreUpdates, highScores):
 	logQueue.put((id, "INFO", f"Worker {id} started"))
 	while True:
 		try:
 			startTime=time.time()
-			result = avrgGame(net, logQueue, id)
+			result = avrgGame(net, logQueue, scoreUpdates, highScores, id)
 			runTime=time.time()-startTime
 			outQueue.put((id, result, runTime))
 			net=result[1]
@@ -59,6 +59,23 @@ def buildTable(netStats, lastRuntime, lastUpdateTime):
 
 	return table
 
+def buildHighScores(logs, logQueue, highScores):
+
+	for entry in logs:
+		id, score = entry[0]
+		print(len(highScores))
+		print(id)
+		if score > highScores[id]:
+			
+			highScores[id] = score
+			logQueue.put((id, "INFO", f"Updated High Score for Net {id}"))
+	text=""
+	for index, score in enumerate(highScores):
+		text += f"Net {index}, High Score: {score}\n"
+		
+	return Panel(text, title="High Scores")
+
+
 def buildLogs(logs):
 
 	text = ""
@@ -84,6 +101,10 @@ if __name__ == "__main__":
 
 	outputQueue = multiprocessing.Queue()
 
+	scoreUpdates = multiprocessing.Queue()
+	highScores = multiprocessing.Array('i', [0, 0, 0, 0])
+	scoreUpdateList = []
+
 	makeNewNets = False
 
 	if not makeNewNets:
@@ -102,7 +123,7 @@ if __name__ == "__main__":
 	print("Building Proccesses")
 	proccesses=[]
 	for i, net in enumerate(nets):
-		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue))]
+		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue, scoreUpdates, highScores))]
 		proccesses[-1].start()
 	n = 0
 	runTime=[0,0,0,0]
@@ -111,7 +132,8 @@ if __name__ == "__main__":
 	layout = Layout()
 
 	layout.split_column(
-		Layout(name="table"),
+		Layout(name="table", size=8),
+		Layout(name="highScores"),
 		Layout(name="logs", size=10)
 
 	)
@@ -122,7 +144,6 @@ if __name__ == "__main__":
 
 	with Live(layout, refresh_per_second=4) as live:
 
-		
 
 		while True:
 			try:
@@ -154,9 +175,22 @@ if __name__ == "__main__":
 
 			except queue.Empty:
 				pass
+
+			try:
+				msg = scoreUpdates.get_nowait()
+
+				scoreUpdateList.append([msg, getTime()])
+
+				if len(scoreUpdateList) > maxLogs:
+					scoreUpdateList.pop(0)
+
+			except queue.Empty:
+				pass
+
 			
 			layout["table"].update(buildTable(scoreNets, runTime, lastUpdateTime))
 			layout["logs"].update(buildLogs(logs))
+			layout["highScores"].update(buildHighScores(scoreUpdateList, logQueue, highScores))
 
 			live.update(layout)
 

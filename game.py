@@ -15,16 +15,15 @@ LETTERS = ['w', 'a', 's', 'd']
 
 
 
-def avrgGame(net, logQueue, id):
+def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 
 	sumScore=0
 	sumError=0
 	gamesPlayed=0
-
-	highScore=0
 	
+	localHighScore= masterHighScores[id]
 	
 	for i in range(500):
 		try:
@@ -34,9 +33,10 @@ def avrgGame(net, logQueue, id):
 			sumError+=percentError
 			gamesPlayed+=1
 
-			if thisGame > highScore:
-				highScore = thisGame
-				logQueue.put((id, "INFO", f"New high score achieved: {highScore}"))
+			if thisGame > localHighScore:
+				localHighScore = thisGame
+				scoreUpdates.put((id, localHighScore))
+				
 
 		except Exception as e:
 			logQueue.put((id, "ERROR", str(e)))
