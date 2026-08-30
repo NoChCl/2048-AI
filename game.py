@@ -126,7 +126,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 				if i == realI:
 					totalInvalidMoves+=1
 					stateInvalidMoves+=1
-					if stateInvalidMoves>500:
+					if stateInvalidMoves>16:
 						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 						done=True
 
