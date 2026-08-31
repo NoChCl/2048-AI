@@ -22,16 +22,21 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	sumScore=0
 	sumError=0
 	gamesPlayed=0
+	stage=1
 	
 	localHighScore= masterHighScores[id]
 	
 	for i in range(500):
 		try:
-			thisGame, net, percentError = runGame(TABLE.copy(), net, logQueue, id)
+			thisGame, net, percentError = runGame(TABLE.copy(), net, logQueue, id, stage)
 		
 			sumScore+=thisGame
 			sumError+=percentError
 			gamesPlayed+=1
+
+			if stage == 1 and percentError < 10: stage=2
+			elif stage == 2 and percentError > 15: stage=1
+
 
 			if thisGame > localHighScore:
 				localHighScore = thisGame
@@ -85,7 +90,7 @@ def getScore(table):
 	return np.sum(table)
 
 
-def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
+def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 	TABLE=randomfill(TABLE)
 	TABLE=randomfill(TABLE)
 	iterations=1
@@ -117,14 +122,14 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1):
 				net.reward=.1
 				if i == realI:
 					iterations += 1
-
-				validSecondaries=0
-				for x, d in enumerate(["w", "a", "s", "d"]):
-					if directionIsValid(d, TABLE):
-						validSecondaries+=1
-				if validSecondaries == 0:
-					net.reward=-.2
-				net.reward+=.1*validSecondaries
+				if trainingStage >1:
+					validSecondaries=0
+					for x, d in enumerate(["w", "a", "s", "d"]):
+						if directionIsValid(d, TABLE):
+							validSecondaries+=1
+					if validSecondaries == 0:
+						net.reward=-.2
+					net.reward+=.1*validSecondaries
 
 			else:
 				net.reward=-.5
