@@ -34,10 +34,14 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 			sumError+=percentError
 			gamesPlayed+=1
 
-			if stage == 1 and percentError < 5: stage=2
-			elif stage != 1 and percentError > 10: stage=1
-			elif stage == 2 and thisGame >250: stage=3
-			elif stage == 3 and thisGame < 200: stage=2
+			avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
+			avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
+
+			if stage == 1 and avgError < 5: stage=2
+			elif stage == 2 and thisGame >300: stage=3
+
+			if stage > 1 and percentError > 10: stage=1
+			elif stage > 2 and avgScore < 200: stage=2
 
 
 			if thisGame > localHighScore:
@@ -47,9 +51,6 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 
 		except Exception as e:
 			logQueue.put((id, "ERROR", str(e)))
-
-	avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
-	avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
 
 	# return the avrg score, the net and whatever errors it had
 	return [avgScore, net, avgError]
