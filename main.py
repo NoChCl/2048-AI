@@ -64,8 +64,6 @@ def buildHighScores(logs, logQueue, highScores):
 
 	for entry in logs:
 		id, score = entry[0]
-		print(len(highScores))
-		print(id)
 		if score > highScores[id]:
 			
 			highScores[id] = score
