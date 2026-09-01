@@ -36,6 +36,7 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 
 			if stage == 1 and percentError < 10: stage=2
 			elif stage == 2 and percentError > 15: stage=1
+			elif stage == 2 and thisGame >250: stage=3
 
 
 			if thisGame > localHighScore:
@@ -108,37 +109,46 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 		numList+=[numList.pop(realI)]
 
 		trueTable=TABLE.copy()
+		trueMT=getMtNumb(trueTable)
+		iterations += 1
 
 		for i in numList:
 			TABLE=trueTable.copy()
 			direction = LETTERS[i]
 			new_table = key(direction, TABLE.copy())
 
-
+			
 
 			if not np.array_equal(new_table, TABLE):
 				stateInvalidMoves=0
 				TABLE = randomfill(new_table)
 				net.reward=.1
-				if i == realI:
-					iterations += 1
-				if trainingStage >1:
-					validSecondaries=0
-					for x, d in enumerate(["w", "a", "s", "d"]):
-						if directionIsValid(d, TABLE):
-							validSecondaries+=1
-					if validSecondaries == 0:
-						net.reward=-.2
-					net.reward+=.1*validSecondaries
-
+					
 			else:
-				net.reward=-.5
+				net.reward=0
 				if i == realI:
 					totalInvalidMoves+=1
 					stateInvalidMoves+=1
 					if stateInvalidMoves>16:
 						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 						done=True
+
+
+			mt=getMtNumb(TABLE)
+			mtDif=mt-trueMT
+			percentMtDif=mtDif/16
+
+			if trainingStage >1:
+				validSecondaries=0
+				for x, d in enumerate(["w", "a", "s", "d"]):
+					if directionIsValid(d, TABLE):
+						validSecondaries+=1
+				if validSecondaries == 0:
+					net.reward=-.2
+				net.reward+=.05*validSecondaries
+			if trainingStage >2:
+				net.reward+=percentMtDif*.4
+
 
 
 			if gameOver(TABLE):
@@ -157,7 +167,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 				targs[x]=0
 
 
-
+		targs[-1]=percentMtDif
 
 		net.train(targs)
 		if done:
