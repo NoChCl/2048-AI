@@ -35,8 +35,9 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 			gamesPlayed+=1
 
 			if stage == 1 and percentError < 10: stage=2
-			elif stage == 2 and percentError > 15: stage=1
+			elif stage != 1 and percentError > 15: stage=1
 			elif stage == 2 and thisGame >250: stage=3
+			elif stage == 3 and thisGame < 200: stage=2
 
 
 			if thisGame > localHighScore:
