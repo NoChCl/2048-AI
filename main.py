@@ -1,3 +1,4 @@
+import os
 import time, pickle, queue, multiprocessing
 from tqdm import tqdm
 from game import *
@@ -105,6 +106,8 @@ if __name__ == "__main__":
 	highScores = multiprocessing.Array('i', [0, 0, 0, 0])
 	scoreUpdateList = []
 
+	coreNumb = min(4, os.cpu_count()-1)
+
 	makeNewNets = False
 
 	if not makeNewNets:
@@ -117,14 +120,20 @@ if __name__ == "__main__":
 			nets+=[scoreNet[1]]
 
 	else:
-		nets=genNewNets(4)
+		nets=genNewNets(coreNumb)
 		scoreNets=[[0, net, 100] for net in nets]
 
 	print("Building Proccesses")
 	proccesses=[]
+
+
+
 	for i, net in enumerate(nets):
 		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue, scoreUpdates, highScores))]
-		proccesses[-1].start()
+		if i < coreNumb:
+			proccesses[-1].start()
+
+
 	n = 0
 	runTime=[0,0,0,0]
 	lastUpdateTime=[time.time(), time.time(), time.time(), time.time()]
