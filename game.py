@@ -148,7 +148,9 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 
 		direction = LETTERS[index]
 
+		oldTable=TABLE.copy()
 		new_table = key(direction, TABLE.copy())
+
 
 		if not np.array_equal(new_table, TABLE):
 			stateInvalidMoves=0
@@ -161,11 +163,13 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			if stateInvalidMoves>16:
 				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 				done=True
+			elif stateInvalidMoves==0:
+				replayQueue.append(oldTable.copy())
 
 		validDirections=0
 		for d in LETTERS:
 			if directionIsValid(d, TABLE): validDirections+=1
-		if validDirections <=2:
+		if validDirections == 1:
 			replayQueue.append(TABLE.copy())
 		
 
