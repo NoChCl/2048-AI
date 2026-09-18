@@ -1,7 +1,7 @@
 import pickle, numpy as np, math
 
 from ai import *
-from game import directionIsValid, gameOver, getMtNumb, getScore, key, randomfill
+from game import directionIsValid, gameOver, getMtNumb, getScore, getTargs, key, randomfill
 from pygameTools import FPS, myPygame
 from rich.table import Table
 from rich.console import Console
@@ -54,59 +54,31 @@ def runDemo(net):
 					disp.FPSCLOCK.tick(FPS)
 
 
-			n = netInput(net, TABLE)
+			n, net = netInput(net, TABLE)
 
-			realI=np.argmax(n[:4])
+			i=np.argmax(n[:4])
 
-			targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
+			targs=getTargs(TABLE, 10)
 
-			numList=[0,1,2,3]
-			numList+=[numList.pop(realI)]
-
-			trueTable=TABLE.copy()
-
-			for i in numList:
-				TABLE=trueTable.copy()
-				direction = LETTERS[i]
-				new_table = key(direction, TABLE.copy())
+			
+			direction = LETTERS[i]
+			new_table = key(direction, TABLE.copy())
 
 
-				if not np.array_equal(new_table, TABLE):
-					TABLE = randomfill(new_table)
-					net.reward=.1
-					if i == realI:
-						iterations += 1
+			if not np.array_equal(new_table, TABLE):
+				TABLE = randomfill(new_table)
 
-					validSecondaries=0
-					for x, d in enumerate(["w", "a", "s", "d"]):
-						if directionIsValid(d, TABLE):
-							validSecondaries+=1
-					if validSecondaries == 0:
-						net.reward=-.2
-					net.reward+=.1*validSecondaries
-					
-				else:
-					net.reward-=.5
-					if i == realI:
-						disp.pygame.quit()
-						return "Net made an invalid move, ending demo."
-					
+				iterations += 1
+				
+			else:
+				disp.pygame.quit()
+				return "Net made an invalid move, ending demo."
+				
 
-				if gameOver(TABLE):
-					net.reward-=.25
-					if i == realI:
-						disp.pygame.quit()
-						return getScore(TABLE)
+			if gameOver(TABLE):
+				disp.pygame.quit()
+				return getScore(TABLE)
 
-				targs[i]+=maxMin(net.reward)
-
-
-
-			for x, d in enumerate(["w", "a", "s", "d"]):
-				if directionIsValid(d, trueTable):
-					targs[x+4]=1
-				else:
-					targs[x]=0
 
 			live.update(makeDemoTable(targs, n))
 				
