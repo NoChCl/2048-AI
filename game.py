@@ -216,7 +216,7 @@ def getTargs(TABLE, trainingStage):
 
 			reward+=.05*validSecondaries
 			
-		elif trainingStage >2:
+		if trainingStage >2:
 			reward+=percentMtDif*.4
 
 		if gameOver(TABLE):
