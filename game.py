@@ -55,6 +55,39 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	# return the avrg score, the net and whatever errors it had
 	return [avgScore, net, avgError]
 
+def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
+
+	fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
+
+
+	with open(f"replays.pkl", "rb") as f:
+		replays = pickle.load(f)
+
+	replays += replayQueue
+
+	newReplays = []
+
+	for replay in replays:
+		if not any(np.array_equal(replay, r) for r in newReplays):
+			newReplays.append(replay)
+
+	replays = newReplays
+
+	if len(replays) > 1000:
+		replays=replays[-1000:]
+
+	with open(f"replays.pkl", "wb") as f:
+		pickle.dump(replays, f)
+
+	loopNumb = min(len(replays), 100)
+	for i in range(loopNumb):
+		thisTable=replays.pop(random.randint(0, len(replays)-1))
+		net.train(getTargs(thisTable, trainingStage))
+
+
+	return [fullGame, net, error]
+	
+
 
 def getMtNumb(TABLE):
 	mts=0
@@ -100,83 +133,105 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 	done=False
 	totalInvalidMoves=0
 	stateInvalidMoves=0
+	replayQueue = []
 	while True:
 		n = netInput(net, TABLE)
 
-		realI=np.argmax(n[:4])
+		net.train(getTargs(TABLE, trainingStage))
 
-		targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
+		index=np.argmax(n[:4])
 
-		numList=[0,1,2,3]
-		numList+=[numList.pop(realI)]
 
-		trueTable=TABLE.copy()
-		trueMT=getMtNumb(trueTable)
 		iterations += 1
 
-		for i in numList:
-			TABLE=trueTable.copy()
-			direction = LETTERS[i]
-			new_table = key(direction, TABLE.copy())
 
-			
+		direction = LETTERS[index]
 
-			if not np.array_equal(new_table, TABLE):
-				stateInvalidMoves=0
-				TABLE = randomfill(new_table)
-				net.reward=.1
-					
-			else:
-				net.reward=0
-				if i == realI:
-					totalInvalidMoves+=1
-					stateInvalidMoves+=1
+		new_table = key(direction, TABLE.copy())
 
-					if stateInvalidMoves>16:
-						logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
-						done=True
-
-
-			mt=getMtNumb(TABLE)
-			mtDif=mt-trueMT
-			percentMtDif=mtDif/16
-
-			if trainingStage >1:
-				validSecondaries=0
-				for d in LETTERS:
-					if directionIsValid(d, TABLE): validSecondaries+=1
-				if validSecondaries == 0: net.reward=-.2
-
-				net.reward+=.05*validSecondaries
+		if not np.array_equal(new_table, TABLE):
+			stateInvalidMoves=0
+			TABLE = randomfill(new_table)
 				
-			elif trainingStage >2:
-				net.reward+=percentMtDif*.4
+		else:
+			totalInvalidMoves+=1
+			stateInvalidMoves+=1
 
-			if gameOver(TABLE):
-				net.reward-=.25
-				if i == realI:
-					done=True
+			if stateInvalidMoves>16:
+				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
+				done=True
 
-			targs[i]+=maxMin(net.reward)
+		validDirections=0
+		for d in LETTERS:
+			if directionIsValid(d, TABLE): validDirections+=1
+		if validDirections <=2:
+			replayQueue.append(TABLE.copy())
+		
 
+		if gameOver(TABLE):
+			done=True
 
-
-		for x, d in enumerate(LETTERS):
-			if directionIsValid(d, trueTable):
-				targs[x+4]=1
-			else:
-				targs[x]=0
-
-
-		targs[-1]=percentMtDif
-
-		net.train(targs)
 		if done:
 			break
 	
 
-	return (getScore(TABLE), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100)
+	return (getScore(TABLE), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, replayQueue)
 
+def getTargs(TABLE, trainingStage):
+
+	targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
+
+	trueTable=TABLE.copy()
+	trueMT=getMtNumb(trueTable)
+	iterations += 1
+
+	for i in range(4):
+		TABLE=trueTable.copy()
+		direction = LETTERS[i]
+		new_table = key(direction, TABLE.copy())
+
+		
+
+		if not np.array_equal(new_table, TABLE):
+			TABLE = randomfill(new_table)
+			reward=.1
+				
+		else:
+			reward=0
+			
+
+		mt=getMtNumb(TABLE)
+		mtDif=mt-trueMT
+		percentMtDif=mtDif/16
+
+		if trainingStage >1:
+			validSecondaries=0
+			for d in LETTERS:
+				if directionIsValid(d, TABLE): validSecondaries+=1
+			if validSecondaries == 0: reward=-.2
+
+			reward+=.05*validSecondaries
+			
+		elif trainingStage >2:
+			reward+=percentMtDif*.4
+
+		if gameOver(TABLE):
+			reward-=.25
+
+
+		targs[i]+=maxMin(reward)
+
+
+
+	for x, d in enumerate(LETTERS):
+		if directionIsValid(d, trueTable):
+			targs[x+4]=1
+		else:
+			targs[x]=0
+
+
+	targs[-1]=percentMtDif
+	return targs
 
 	
 def directionIsValid(direction, oldTable):
