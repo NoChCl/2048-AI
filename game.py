@@ -28,7 +28,7 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	
 	for i in range(500):
 		try:
-			thisGame, net, percentError = runGame(TABLE.copy(), net, logQueue, id, stage)
+			thisGame, net, percentError = trainingSequence(TABLE.copy(), net, logQueue, id, stage)
 		
 			sumScore+=thisGame
 			sumError+=percentError
