@@ -82,6 +82,7 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	loopNumb = min(len(replays), 25)
 	for i in range(loopNumb):
 		thisTable=replays.pop(random.randint(0, len(replays)-1))
+
 		net.train(getTargs(thisTable, trainingStage))
 
 
@@ -135,7 +136,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 	stateInvalidMoves=0
 	replayQueue = []
 	while True:
-		n = netInput(net, TABLE)
+		n, net = netInput(net, TABLE)
 
 		net.train(getTargs(TABLE, trainingStage))
 

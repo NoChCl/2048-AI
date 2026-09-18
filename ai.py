@@ -136,9 +136,7 @@ def netInput(myNet,t):
 
   myNet.update(ins)
   
-  
-  #print(myNet.outputs[-1])
-  return handelNetOut(myNet)
+  return handelNetOut(myNet), myNet
 
 def handelNetOut(myNet):
         output=myNet.outputs[-1]
