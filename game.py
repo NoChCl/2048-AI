@@ -184,7 +184,6 @@ def getTargs(TABLE, trainingStage):
 
 	trueTable=TABLE.copy()
 	trueMT=getMtNumb(trueTable)
-	iterations += 1
 
 	for i in range(4):
 		TABLE=trueTable.copy()
