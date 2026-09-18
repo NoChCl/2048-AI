@@ -80,11 +80,8 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 		pickle.dump(replays, f)
 
 	loopNumb = min(len(replays), 25)
-
-	for _ in range(loopNumb):
-		index = random.randrange(len(replays))
-		thisTable = replays.pop(index)
-
+	for i in range(loopNumb):
+		thisTable=replays.pop(random.randint(0, len(replays)-1))
 		n, net = netInput(net, thisTable)
 		net.train(getTargs(thisTable, trainingStage))
 
