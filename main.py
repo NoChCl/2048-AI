@@ -128,13 +128,6 @@ if __name__ == "__main__":
 	print("Building Proccesses")
 	proccesses=[]
 
-	try:
-		with open("replays.pkl", "rb") as f:
-			replays = pickle.load(f)
-	except FileNotFoundError:
-		replays = []
-		with open("replays.pkl", "wb") as f:
-			pickle.dump(replays, f)
 
 	for i, net in enumerate(nets):
 		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue, scoreUpdates, highScores))]

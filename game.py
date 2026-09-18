@@ -60,8 +60,13 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
 
 
-	with open(f"replays.pkl", "rb") as f:
-		replays = pickle.load(f)
+	try:
+		with open(f"replays_{id}.pkl", "rb") as f:
+			replays = pickle.load(f)
+	except FileNotFoundError:
+		replays = []
+		with open(f"replays_{id}.pkl", "wb") as f:
+			pickle.dump(replays, f)
 
 	replays += replayQueue
 
