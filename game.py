@@ -161,7 +161,7 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			stateInvalidMoves+=1
 
 			if stateInvalidMoves>16:
-				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
+				#logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 				done=True
 			elif stateInvalidMoves==0:
 				replayQueue.append(oldTable.copy())
