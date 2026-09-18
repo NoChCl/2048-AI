@@ -43,7 +43,6 @@ class Nuron():
 
 class NuralNet():
         def __init__(self, inputNumb, otherLayers):
-                self.reward=0
                 self.inputNumb=inputNumb
                 self.otherLayers=otherLayers
                 self.numbLayers=len(otherLayers)
