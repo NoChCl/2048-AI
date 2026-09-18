@@ -106,6 +106,10 @@ if __name__ == "__main__":
 
 	coreNumb = min(4, os.cpu_count()-1)
 
+	scoreUpdates = multiprocessing.Queue()
+	highScores = multiprocessing.Array('i', [0] * coreNumb)
+	scoreUpdateList = []
+
 	makeNewNets = False
 
 	if not makeNewNets:
