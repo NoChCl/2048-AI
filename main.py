@@ -96,6 +96,7 @@ if __name__ == "__main__":
 	
 	logQueue = multiprocessing.Queue()
 	logs = []
+	fullLogs = ""
 	maxLogs = 10
 
 	outputQueue = multiprocessing.Queue()
@@ -179,6 +180,10 @@ if __name__ == "__main__":
 				msg = logQueue.get_nowait()
 
 				logs.append([msg, getTime()])
+				fullLogs += f"{getTime()}: [{msg[1]}] Net {msg[0]}: {msg[2]}\n"
+
+				with open("logs.txt", "w") as f:
+					f.write(fullLogs)
 
 				if len(logs) > maxLogs:
 					logs.pop(0)
