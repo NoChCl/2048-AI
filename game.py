@@ -50,14 +50,17 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 				
 
 		except Exception as e:
-			logQueue.put((id, "ERROR", str(e)))
+			logQueue.put((id, "ERROR", str(e)+"Traceback: avrgGame"))
 
 	# return the avrg score, the net and whatever errors it had
 	return [avgScore, net, avgError]
 
 def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
+	try:
+		fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
+	except Exception as e:
+		logQueue.put((id, "ERROR", str(e)+"Traceback: trainingSequence"))
 
 
 	try:

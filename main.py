@@ -21,7 +21,7 @@ def worker(net, id, outQueue, logQueue, scoreUpdates, highScores):
 			outQueue.put((id, result, runTime))
 			net=result[1]
 		except Exception as e:
-			logQueue.put((id, "ERROR", str(e)))
+			logQueue.put((id, "ERROR", str(e))+"Traceback: Worker"))
 
 
 def buildTable(netStats, lastRuntime, lastUpdateTime):
