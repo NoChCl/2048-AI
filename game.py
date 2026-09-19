@@ -92,7 +92,7 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	if len(replays) > 1000:
 		replays=replays[-1000:]
 
-	with open(f"replays.pkl", "wb") as f:
+	with open(f"replays_{id}.pkl", "wb") as f:
 		pickle.dump(replays, f)
 
 	loopNumb = min(len(replays), 25)
