@@ -37,11 +37,19 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 			avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
 			avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
 
-			if stage == 1 and avgError < 5: stage=2 and logQueue.put((id, "INFO", f"Promoted to Stage 2"))
-			elif stage == 2 and thisGame >300: stage=3 and logQueue.put((id, "INFO", f"Promoted to Stage 3"))
+			if stage == 1 and avgError < 5:
+				stage=2
+				logQueue.put((id, "INFO", f"Promoted to Stage 2"))
+			elif stage == 2 and thisGame >300:
+				stage=3
+				logQueue.put((id, "INFO", f"Promoted to Stage 3"))
 
-			if stage > 1 and avgError > 10: stage=1 and logQueue.put((id, "INFO", f"Demoted to Stage 1"))
-			elif stage > 2 and avgScore < 200: stage=2 and logQueue.put((id, "INFO", f"Demoted to Stage 2"))
+			if stage > 1 and avgError > 10:
+				stage=1
+				logQueue.put((id, "INFO", f"Demoted to Stage 1"))
+			elif stage > 2 and avgScore < 200:
+				stage=2
+				logQueue.put((id, "INFO", f"Demoted to Stage 2"))
 
 
 			if thisGame > localHighScore:
