@@ -139,18 +139,17 @@ def getScore(table):
 def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 	TABLE=randomfill(TABLE)
 	TABLE=randomfill(TABLE)
-	iterations=1
+	iterations=0
 	done=False
 	totalInvalidMoves=0
 	stateInvalidMoves=0
 	replayQueue = []
 	while True:
 		n, net = netInput(net, TABLE)
-
-		net.train(getTargs(TABLE, trainingStage))
-
+		
 		index=np.argmax(n[:4])
 
+		net.train(getTargs(TABLE, trainingStage, index))
 
 		iterations += 1
 
@@ -169,10 +168,10 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			totalInvalidMoves+=1
 			stateInvalidMoves+=1
 
-			if stateInvalidMoves>16:
+			if stateInvalidMoves>=16:
 				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 				done=True
-			elif stateInvalidMoves==0:
+			elif stateInvalidMoves==1:
 				replayQueue.append(oldTable.copy())
 
 		validDirections=0
@@ -191,14 +190,18 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 
 	return (getScore(TABLE), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, replayQueue)
 
-def getTargs(TABLE, trainingStage):
+def getTargs(TABLE, trainingStage, realDir):
 
 	targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
 
 	trueTable=TABLE.copy()
 	trueMT=getMtNumb(trueTable)
 
-	for i in range(4):
+	rangeFour = [0, 1, 2, 3]
+	rangeFour+=[rangeFour.pop(realDir)]
+
+	
+	for i in rangeFour:
 		TABLE=trueTable.copy()
 		direction = LETTERS[i]
 		new_table = key(direction, TABLE.copy())
@@ -243,7 +246,8 @@ def getTargs(TABLE, trainingStage):
 			targs[x]=0
 
 
-	targs[-1]=percentMtDif
+	targs[-1]=percentMtDif+.5
+
 	return targs
 
 	

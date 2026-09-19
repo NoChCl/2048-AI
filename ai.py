@@ -136,9 +136,9 @@ def netInput(myNet,t):
 
   myNet.update(ins)
   
-  return handelNetOut(myNet), myNet
+  return handleNetOut(myNet), myNet
 
-def handelNetOut(myNet):
+def handleNetOut(myNet):
         output=myNet.outputs[-1]
         if myNet.outputs[-1][0]==myNet.outputs[-1][1]==myNet.outputs[-1][2]==myNet.outputs[-1][3]:
                 output[random.randint(0,3)]=2
