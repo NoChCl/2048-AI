@@ -92,7 +92,8 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	for i in range(loopNumb):
 		thisTable=replays.pop(random.randint(0, len(replays)-1))
 		n, net = netInput(net, thisTable)
-		net.train(getTargs(thisTable, trainingStage))
+		index=np.argmax(n[:4])
+		net.train(getTargs(thisTable, trainingStage, index))
 
 
 	return [fullGame, net, error]
