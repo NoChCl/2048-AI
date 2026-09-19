@@ -27,48 +27,41 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	localHighScore= masterHighScores[id]
 	
 	for i in range(500):
-		try:
-			thisGame, net, percentError = trainingSequence(TABLE.copy(), net, logQueue, id, stage)
-		
-			sumScore+=thisGame
-			sumError+=percentError
-			gamesPlayed+=1
+		thisGame, net, percentError = trainingSequence(TABLE.copy(), net, logQueue, id, stage)
+	
+		sumScore+=thisGame
+		sumError+=percentError
+		gamesPlayed+=1
 
-			avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
-			avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
+		avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
+		avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
 
-			if stage == 1 and avgError < 5:
-				stage=2
-				logQueue.put((id, "INFO", f"Promoted to Stage 2"))
-			elif stage == 2 and thisGame >300:
-				stage=3
-				logQueue.put((id, "INFO", f"Promoted to Stage 3"))
+		if stage == 1 and avgError < 5:
+			stage=2
+			logQueue.put((id, "INFO", f"Promoted to Stage 2"))
+		elif stage == 2 and thisGame >300:
+			stage=3
+			logQueue.put((id, "INFO", f"Promoted to Stage 3"))
 
-			if stage > 1 and avgError > 10:
-				stage=1
-				logQueue.put((id, "INFO", f"Demoted to Stage 1"))
-			elif stage > 2 and avgScore < 200:
-				stage=2
-				logQueue.put((id, "INFO", f"Demoted to Stage 2"))
+		if stage > 1 and avgError > 10:
+			stage=1
+			logQueue.put((id, "INFO", f"Demoted to Stage 1"))
+		elif stage > 2 and avgScore < 200:
+			stage=2
+			logQueue.put((id, "INFO", f"Demoted to Stage 2"))
 
 
-			if thisGame > localHighScore:
-				localHighScore = thisGame
-				scoreUpdates.put((id, localHighScore))
-				
+		if thisGame > localHighScore:
+			localHighScore = thisGame
+			scoreUpdates.put((id, localHighScore))
 
-		except Exception as e:
-			logQueue.put((id, "ERROR", f"{e}\n{traceback.format_exc()}"))
 
 	# return the avrg score, the net and whatever errors it had
 	return [avgScore, net, avgError]
 
 def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	try:
-		fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
-	except Exception as e:
-		logQueue.put((id, "ERROR", f"{e}\n{traceback.format_exc()}"))
+	fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
 
 
 	try:
