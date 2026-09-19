@@ -1,4 +1,4 @@
-import random, sys, time, pickle
+import random, sys, time, pickle, traceback
 from tqdm import tqdm
 from ai import *
 from random import randint
@@ -50,7 +50,7 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 				
 
 		except Exception as e:
-			logQueue.put((id, "ERROR", str(e)+"Traceback: avrgGame"))
+			logQueue.put((id, "ERROR", f"{e}\n{traceback.format_exc()}"))
 
 	# return the avrg score, the net and whatever errors it had
 	return [avgScore, net, avgError]
@@ -60,7 +60,7 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	try:
 		fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
 	except Exception as e:
-		logQueue.put((id, "ERROR", str(e)+"Traceback: trainingSequence"))
+		logQueue.put((id, "ERROR", f"{e}\n{traceback.format_exc()}"))
 
 
 	try:
