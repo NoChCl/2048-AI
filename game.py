@@ -198,6 +198,18 @@ def getTargs(TABLE, trainingStage, realDir):
 	trueTable=TABLE.copy()
 	trueMT=getMtNumb(trueTable)
 
+	isOneValid=False
+
+	numbValid=0
+	for x, d in enumerate(LETTERS):
+		if directionIsValid(d, trueTable):
+			numbValid+=1
+			targs[x+4]=1
+		else:
+			targs[x]=0
+	if numbValid == 1: isOneValid=True
+
+
 	rangeFour = [0, 1, 2, 3]
 	rangeFour+=[rangeFour.pop(realDir)]
 
@@ -236,15 +248,11 @@ def getTargs(TABLE, trainingStage, realDir):
 			reward-=.25
 
 
-		targs[i]+=maxMin(reward)
+		if isOneValid: targs[i]=1
+		else: targs[i]+=maxMin(reward)
 
 
 
-	for x, d in enumerate(LETTERS):
-		if directionIsValid(d, trueTable):
-			targs[x+4]=1
-		else:
-			targs[x]=0
 
 
 	targs[-1]=percentMtDif+.5
