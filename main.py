@@ -24,7 +24,7 @@ def worker(net, id, outQueue, logQueue, scoreUpdates, highScores):
 
 
 def buildTable(netSaves, lastRuntime, lastUpdateTime):
-	netStats = [[netSave.avgScore, netSave.net, netSave.error, netSave.heighScore] for netSave in netSaves]
+	netStats = [[netSave.avgScore, netSave.net, netSave.error, netSave.highScore] for netSave in netSaves]
 
 	table = Table()
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 		nets=[]
 		for i, save in enumerate(netSaves):
 			nets += [save.net]
-			highScores[i] = save.heighScore
+			highScores[i] = save.highScore
 
 	else:
 		nets=genNewNets(coreNumb)
