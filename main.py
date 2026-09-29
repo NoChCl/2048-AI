@@ -1,6 +1,5 @@
 import os
 import time, pickle, queue, multiprocessing
-from tqdm import tqdm
 from game import *
 from ai import *
 from readScoreNet import *

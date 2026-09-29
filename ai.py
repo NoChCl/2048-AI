@@ -1,5 +1,4 @@
 import random, math
-from tqdm import tqdm
 
 
 class Nuron():
@@ -177,7 +176,7 @@ def make():
 def genNewNets(netNumb):
         nets=[]
         print("\nGenerating Nets")
-        for i in tqdm(range(netNumb)):
+        for i in range(netNumb):
                 nets+=[NuralNet(16,make()[1])]
 
         return nets
