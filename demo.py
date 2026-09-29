@@ -88,11 +88,11 @@ if __name__ == "__main__":
 	console = Console()
 	while True:
 		try:
-			with open("scoreNet.pkl","rb") as f: scoreNets = pickle.load(f)
+			with open("netSaves.pkl","rb") as f: netSaves = pickle.load(f)
 			nets=[]
-			for i, scoreNet in enumerate(scoreNets):
-				print(f"Score for net {i}: {scoreNet[0]}")
-				nets+=[scoreNet[1]]
+			for i, save in enumerate(netSaves):
+				print(f"Net {i} Stats:\n\tAverage score: {save.avgScore}\n\tAverage high score: {save.highScore}\n\tAverage error: {save.error}\n")
+				nets+=[save.net]
 			netIndex = int(input("Which net do you want to test? "))
 			net = nets[netIndex]
 		except (ValueError, IndexError):
