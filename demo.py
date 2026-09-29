@@ -91,7 +91,7 @@ if __name__ == "__main__":
 			with open("netSaves.pkl","rb") as f: netSaves = pickle.load(f)
 			nets=[]
 			for i, save in enumerate(netSaves):
-				print(f"Net {i} Stats:\n\tAverage score: {save.avgScore}\n\tAverage high score: {save.highScore}\n\tAverage error: {save.error}\n")
+				print(f"Net {i} Stats:\n\tAverage score: {save.avgScore}\n\tHigh score: {save.highScore}\n\tAverage error: {save.error}\n")
 				nets+=[save.net]
 			netIndex = int(input("Which net do you want to test? "))
 			net = nets[netIndex]
