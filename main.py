@@ -23,7 +23,8 @@ def worker(net, id, outQueue, logQueue, scoreUpdates, highScores):
 			logQueue.put((id, "ERROR", f"{e}\n{traceback.format_exc()}"))
 
 
-def buildTable(netStats, lastRuntime, lastUpdateTime):
+def buildTable(netSaves, lastRuntime, lastUpdateTime):
+	netStats = [[netSave.avgScore, netSave.net, netSave.error, netSave.heighScore] for netSave in netSaves]
 
 	table = Table()
 
@@ -100,10 +101,6 @@ if __name__ == "__main__":
 
 	outputQueue = multiprocessing.Queue()
 
-	scoreUpdates = multiprocessing.Queue()
-	highScores = multiprocessing.Array('i', [0, 0, 0, 0])
-	scoreUpdateList = []
-
 	coreNumb = min(4, os.cpu_count()-1)
 
 	scoreUpdates = multiprocessing.Queue()
@@ -115,15 +112,16 @@ if __name__ == "__main__":
 	if not makeNewNets:
 		print("\nLoading Nets")
 
-		with open("scoreNet.pkl","rb") as f: scoreNets = pickle.load(f)
+		with open("netSaves.pkl","rb") as f: netSaves = pickle.load(f)
 
 		nets=[]
-		for scoreNet in scoreNets:
-			nets+=[scoreNet[1]]
+		for i, save in enumerate(netSaves):
+			nets += [save.net]
+			highScores[i] = save.heighScore
 
 	else:
 		nets=genNewNets(coreNumb)
-		scoreNets=[[0, net, 100] for net in nets]
+		netSaves=[netSave(0, net, 100, 0) for net in nets]
 
 	print("Building Proccesses")
 	proccesses=[]
@@ -164,13 +162,13 @@ if __name__ == "__main__":
 				lastUpdateTime[id] = time.time()
 
 				nets[id] = thisScoreNet[1]
-				scoreNets[id] = thisScoreNet
+				netSaves[id] = netSave(thisScoreNet[0], thisScoreNet[1], thisScoreNet[2], highScores[id])
 				
 
-				if n == len(scoreNets):
+				if n == len(netSaves):
 
-					with open("scoreNet.pkl", "wb") as f:
-						pickle.dump(scoreNets, f)
+					with open("netSaves.pkl", "wb") as f:
+						pickle.dump(netSaves, f)
 
 					n = 0
 			except queue.Empty:
@@ -202,7 +200,7 @@ if __name__ == "__main__":
 				pass
 
 			
-			layout["table"].update(buildTable(scoreNets, runTime, lastUpdateTime))
+			layout["table"].update(buildTable(netSaves, runTime, lastUpdateTime))
 			layout["logs"].update(buildLogs(logs))
 			layout["highScores"].update(buildHighScores(scoreUpdateList, logQueue, highScores))
 

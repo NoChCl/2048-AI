@@ -112,6 +112,13 @@ class NuralNet():
                lr=.0001
                self.trainOutLayer(targs, lr)
                self.backPropHidden(lr)
+
+class netSave():
+        def __init__(self, score, net, error, heighScore):
+                self.avgScore=score
+                self.net=net
+                self.error=error
+                self.heighScore=heighScore
     
 def maxMin(targ):
       return max(-.5, min(.5, targ))
