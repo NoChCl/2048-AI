@@ -226,8 +226,8 @@ def getTargs(TABLE, trainingStage, realDir):
 			reward=.1
 				
 		else:
-			reward=0
-			
+			targs[i]=0
+			continue
 
 		mt=getMtNumb(TABLE)
 		mtDif=mt-trueMT
