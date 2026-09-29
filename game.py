@@ -1,4 +1,4 @@
-import random, sys, time, pickle, traceback
+import random, pickle
 from ai import *
 from random import randint
 import numpy as np

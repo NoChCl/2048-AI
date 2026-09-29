@@ -1,5 +1,5 @@
 import os
-import time, pickle, queue, multiprocessing
+import time, pickle, queue, multiprocessing, traceback
 from game import *
 from ai import *
 from readScoreNet import *
