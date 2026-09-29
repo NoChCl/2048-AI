@@ -58,7 +58,7 @@ def runDemo(net):
 
 			i=np.argmax(n[:4])
 
-			targs=getTargs(TABLE, 10)
+			targs=getTargs(TABLE, 10, i)
 
 			
 			direction = LETTERS[i]
