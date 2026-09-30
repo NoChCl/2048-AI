@@ -14,7 +14,7 @@ LETTERS = ['w', 'a', 's', 'd']
 
 
 
-def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
+def avrgGame(net, logQueue, scoreUpdates, masterHighScores, oldAvgError, oldAvgScore, id):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 
@@ -24,16 +24,18 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	stage=1
 	
 	localHighScore= masterHighScores[id]
+
+	numbGames=50
 	
-	for i in range(50):
+	for i in range(numbGames):
 		thisGame, net, percentError = trainingSequence(TABLE.copy(), net, logQueue, id, stage)
 	
 		sumScore+=thisGame
 		sumError+=percentError
 		gamesPlayed+=1
 
-		avgScore=sumScore/gamesPlayed if gamesPlayed > 0 else 0
-		avgError=sumError/gamesPlayed if gamesPlayed > 0 else 100
+		avgScore = ( sumScore + ( ( numbGames - gamesPlayed ) * oldAvgScore ) ) / numbGames
+		avgError = ( sumError + ( ( numbGames - gamesPlayed ) * oldAvgError ) ) / numbGames
 
 		if stage == 1 and avgError < 5:
 			stage=2
@@ -54,6 +56,8 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 			localHighScore = thisGame
 			scoreUpdates.put((id, localHighScore))
 
+	avgScore = sumScore / gamesPlayed
+	avgError = sumError / gamesPlayed
 
 	# return the avrg score, the net and whatever errors it had
 	return [avgScore, net, avgError]
