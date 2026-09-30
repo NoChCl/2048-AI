@@ -32,7 +32,7 @@ def makeDemoTable(targs, actual):
 
 	return table
 
-def runDemo(net):
+def runDemo(net, stage):
 	LETTERS=["w","a","s","d"]
 	TABLE = np.zeros((4, 4), dtype=int)
 	TABLE=randomfill(TABLE)
@@ -58,7 +58,7 @@ def runDemo(net):
 
 			i=np.argmax(n[:4])
 
-			targs=getTargs(TABLE, 10, i)
+			targs=getTargs(TABLE, stage, i)
 
 			
 			direction = LETTERS[i]
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 		except (ValueError, IndexError):
 			print("Invalid input. Please enter a valid net index.")
 		
-		score = runDemo(net)
+		score = runDemo(net, netSaves[netIndex].stage)
 		print("Final Score:", score)
 		
 	quit()
