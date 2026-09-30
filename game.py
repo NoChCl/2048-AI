@@ -201,16 +201,11 @@ def getTargs(TABLE, trainingStage, realDir):
 	trueTable=TABLE.copy()
 	trueMT=getMtNumb(trueTable)
 
-	isOneValid=False
-
-	numbValid=0
 	for x, d in enumerate(LETTERS):
 		if directionIsValid(d, trueTable):
-			numbValid+=1
 			targs[x+4]=1
 		else:
 			targs[x]=0
-	if numbValid == 1: isOneValid=True
 
 
 	rangeFour = [0, 1, 2, 3]
@@ -237,6 +232,9 @@ def getTargs(TABLE, trainingStage, realDir):
 		percentMtDif=mtDif/16
 
 		if trainingStage >1:
+			if gameOver(TABLE):
+				reward-=.25
+
 			validSecondaries=0
 			for d in LETTERS:
 				if directionIsValid(d, TABLE): validSecondaries+=1
@@ -247,16 +245,7 @@ def getTargs(TABLE, trainingStage, realDir):
 		if trainingStage >2:
 			reward+=percentMtDif*.4
 
-		if gameOver(TABLE):
-			reward-=.25
-
-
-		if isOneValid: targs[i]=1
-		else: targs[i]+=maxMin(reward)
-
-
-
-
+		targs[i]+=maxMin(reward)
 
 	targs[-1]=percentMtDif+.5
 
