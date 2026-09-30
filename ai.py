@@ -114,11 +114,12 @@ class NuralNet():
                self.backPropHidden(lr)
 
 class netSave():
-        def __init__(self, score, net, error, highScore):
+        def __init__(self, score, net, error, highScore, stage):
                 self.avgScore=score
                 self.net=net
                 self.error=error
                 self.highScore=highScore
+                self.stage=stage
     
 def maxMin(targ):
       return max(-.5, min(.5, targ))

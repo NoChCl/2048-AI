@@ -10,17 +10,18 @@ from rich.panel import Panel
 from rich.layout import Layout
 
 
-def worker(net, id, outQueue, logQueue, scoreUpdates, highScores, avgError=100, avgScore=0):
+def worker(net, id, outQueue, logQueue, scoreUpdates, highScores, avgError=100, avgScore=0, stage=1):
 	logQueue.put((id, "INFO", f"Worker {id} started"))
 	while True:
 		try:
 			startTime=time.time()
-			result = avrgGame(net, logQueue, scoreUpdates, highScores, avgError, avgScore, id)
+			result = avrgGame(net, logQueue, scoreUpdates, highScores, avgError, avgScore, id, stage)
 			runTime=time.time()-startTime
 			outQueue.put((id, result, runTime))
 			avgScore=result[0]
 			net=result[1]
 			avgError=result[2]
+			stage=result[3]
 		except Exception as e:
 			logQueue.put((id, "ERROR", f"{e}\n{traceback.format_exc()}"))
 
@@ -130,7 +131,7 @@ if __name__ == "__main__":
 
 
 	for i, net in enumerate(nets):
-		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue, scoreUpdates, highScores, netSaves[i].error, netSaves[i].avgScore))]
+		proccesses += [multiprocessing.Process(target=worker, args=(net, i, outputQueue, logQueue, scoreUpdates, highScores, netSaves[i].error, netSaves[i].avgScore, netSaves[i].stage))]
 		if i < coreNumb:
 			proccesses[-1].start()
 
@@ -164,7 +165,7 @@ if __name__ == "__main__":
 				lastUpdateTime[id] = time.time()
 
 				nets[id] = thisScoreNet[1]
-				netSaves[id] = netSave(thisScoreNet[0], thisScoreNet[1], thisScoreNet[2], highScores[id])
+				netSaves[id] = netSave(thisScoreNet[0], thisScoreNet[1], thisScoreNet[2], highScores[id], thisScoreNet[3])
 				
 
 				if n == len(netSaves):

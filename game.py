@@ -14,14 +14,13 @@ LETTERS = ['w', 'a', 's', 'd']
 
 
 
-def avrgGame(net, logQueue, scoreUpdates, masterHighScores, oldAvgError, oldAvgScore, id):
+def avrgGame(net, logQueue, scoreUpdates, masterHighScores, oldAvgError, oldAvgScore, id, stage = 1):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 
 	sumScore=0
 	sumError=0
 	gamesPlayed=0
-	stage=1
 	
 	localHighScore= masterHighScores[id]
 
@@ -60,7 +59,7 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, oldAvgError, oldAvgS
 	avgError = sumError / gamesPlayed
 
 	# return the avrg score, the net and whatever errors it had
-	return [avgScore, net, avgError]
+	return [avgScore, net, avgError, stage]
 
 def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
