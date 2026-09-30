@@ -25,7 +25,7 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, id):
 	
 	localHighScore= masterHighScores[id]
 	
-	for i in range(500):
+	for i in range(50):
 		thisGame, net, percentError = trainingSequence(TABLE.copy(), net, logQueue, id, stage)
 	
 		sumScore+=thisGame
