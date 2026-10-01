@@ -14,7 +14,7 @@ LETTERS = ['w', 'a', 's', 'd']
 
 
 
-def avrgGame(net, logQueue, scoreUpdates, masterHighScores, oldAvgError, oldAvgScore, id, stage = 1):
+def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	
 	TABLE = np.zeros((4, 4), dtype=int)
 
@@ -27,43 +27,45 @@ def avrgGame(net, logQueue, scoreUpdates, masterHighScores, oldAvgError, oldAvgS
 	numbGames=50
 	
 	for i in range(numbGames):
-		thisGame, net, percentError = trainingSequence(TABLE.copy(), net, logQueue, id, stage)
+		thisGameScore, netSave.net, percentError = trainingSequence(TABLE.copy(), netSave.net, logQueue, id, netSave.stage)
 	
-		sumScore+=thisGame
+		sumScore+=thisGameScore
 		sumError+=percentError
 		gamesPlayed+=1
 
-		avgScore = ( sumScore + ( ( numbGames - gamesPlayed ) * oldAvgScore ) ) / numbGames
-		avgError = ( sumError + ( ( numbGames - gamesPlayed ) * oldAvgError ) ) / numbGames
+		avgScore = ( sumScore + ( ( numbGames - gamesPlayed ) * netSave.avgScore ) ) / numbGames
+		avgError = ( sumError + ( ( numbGames - gamesPlayed ) * netSave.error ) ) / numbGames
 
-		if stage == 1 and avgError < 5:
-			stage=2
+		if netSave.stage == 1 and avgError < 5:
+			netSave.stage=2
 			logQueue.put((id, "INFO", f"Promoted to Stage 2"))
-		elif stage == 2 and thisGame >300:
-			stage=3
+		elif netSave.stage == 2 and thisGameScore > 300:
+			netSave.stage=3
 			logQueue.put((id, "INFO", f"Promoted to Stage 3"))
 
-		if stage > 1 and avgError > 10:
-			stage=1
+		if netSave.stage > 1 and avgError > 10:
+			netSave.stage=1
 			logQueue.put((id, "INFO", f"Demoted to Stage 1"))
-		elif stage > 2 and avgScore < 200:
-			stage=2
+		elif netSave.stage > 2 and avgScore < 200:
+			netSave.stage=2
 			logQueue.put((id, "INFO", f"Demoted to Stage 2"))
 
 
-		if thisGame > localHighScore:
-			localHighScore = thisGame
+		if thisGameScore > localHighScore:
+			localHighScore = thisGameScore
 			scoreUpdates.put((id, localHighScore))
 
-	avgScore = sumScore / gamesPlayed
-	avgError = sumError / gamesPlayed
+	netSave.avgScore = sumScore / gamesPlayed
+	netSave.error = sumError / gamesPlayed
+	netSave.highScore = localHighScore
+	netSave.stage = netSave.stage
 
 	# return the avrg score, the net and whatever errors it had
-	return [avgScore, net, avgError, stage]
+	return netSave
 
 def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	fullGame, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
+	fullGameScore, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
 
 
 	try:
@@ -98,7 +100,7 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 		net.train(getTargs(thisTable, trainingStage, index))
 
 
-	return [fullGame, net, error]
+	return [fullGameScore, net, error]
 	
 
 
