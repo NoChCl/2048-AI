@@ -2,11 +2,20 @@ import random, math
 
 
 class Nuron():
+        __slots__ = [
+                'inputNumb',
+                'weights',
+                'bias',
+                'output',
+                'lastInputs',
+                'rawOutput',
+                'error',
+                'delta']
+        
         def __init__(self, weights, bias):
                 self.inputNumb=len(weights)
                 self.weights=weights
                 self.bias=bias
-                self.output=0
                 
                 self.lastInputs = []
                 self.rawOutput = 0
@@ -41,6 +50,13 @@ class Nuron():
 
 
 class NuralNet():
+        __slots__ = [
+                'inputNumb',
+                'otherLayers',
+                'numbLayers',
+                'outputs',
+                'nurons']
+
         def __init__(self, inputNumb, otherLayers):
                 self.inputNumb=inputNumb
                 self.otherLayers=otherLayers
@@ -114,6 +130,13 @@ class NuralNet():
                self.backPropHidden(lr)
 
 class netSave():
+        __slots__ = [
+                'avgScore',
+                'net',
+                'error',
+                'highScore',
+                'stage']
+        
         def __init__(self, score, net, error, highScore, stage):
                 self.avgScore=score
                 self.net=net
