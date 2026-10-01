@@ -16,7 +16,7 @@ LETTERS = ['w', 'a', 's', 'd']
 
 def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	
-	TABLE = np.zeros((4, 4), dtype=int)
+	table = np.zeros((4, 4), dtype=int)
 
 	sumScore=0
 	sumError=0
@@ -27,7 +27,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	numbGames=50
 	
 	for i in range(numbGames):
-		thisGameScore, netSave.net, percentError = trainingSequence(TABLE.copy(), netSave.net, logQueue, id, netSave.stage)
+		thisGameScore, netSave.net, percentError = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
 	
 		sumScore+=thisGameScore
 		sumError+=percentError
@@ -63,9 +63,9 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	# return the avrg score, the net and whatever errors it had
 	return netSave
 
-def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
+def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	fullGameScore, net, error, replayQueue = runGame(TABLE, net, logQueue, id, trainingStage)
+	fullGameScore, net, error, replayQueue = runGame(table, net, logQueue, id, trainingStage)
 
 
 	try:
@@ -104,9 +104,9 @@ def trainingSequence(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	
 
 
-def getMtNumb(TABLE):
+def getMtNumb(table):
 	mts=0
-	for row in TABLE:
+	for row in table:
 		for cell in row:
 			if cell == 0:
 				mts+=1
@@ -114,26 +114,26 @@ def getMtNumb(TABLE):
 
 
 
-def randomfill(TABLE):
-	if not np.any(TABLE == 0):
-		return TABLE
+def randomfill(table):
+	if not np.any(table == 0):
+		return table
 
 	while True:
 		w = randint(0, 15)
 		row, col = divmod(w, 4)
-		if TABLE[row][col] == 0:
-			TABLE[row][col] = 4 if randint(1, 5) == 5 else 2
+		if table[row][col] == 0:
+			table[row][col] = 4 if randint(1, 5) == 5 else 2
 			break
-	return TABLE
+	return table
 
-def gameOver(TABLE):
+def gameOver(table):
 	for i in range(4):
 		for j in range(4):
-			if TABLE[i][j] == 0:
+			if table[i][j] == 0:
 				return False
 			for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
 				ni, nj = i + dx, j + dy
-				if 0 <= ni < 4 and 0 <= nj < 4 and TABLE[ni][nj] == TABLE[i][j]:
+				if 0 <= ni < 4 and 0 <= nj < 4 and table[ni][nj] == table[i][j]:
 					return False
 	return True
 
@@ -141,33 +141,33 @@ def getScore(table):
 	return np.sum(table)
 
 
-def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
-	TABLE=randomfill(TABLE)
-	TABLE=randomfill(TABLE)
+def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
+	table=randomfill(table)
+	table=randomfill(table)
 	iterations=0
 	done=False
 	totalInvalidMoves=0
 	stateInvalidMoves=0
 	replayQueue = []
 	while True:
-		n, net = netInput(net, TABLE)
+		n, net = netInput(net, table)
 		
 		index=np.argmax(n[:4])
 
-		net.train(getTargs(TABLE, trainingStage, index))
+		net.train(getTargs(table, trainingStage, index))
 
 		iterations += 1
 
 
 		direction = LETTERS[index]
 
-		oldTable=TABLE.copy()
-		new_table = key(direction, TABLE.copy())
+		oldTable=table.copy()
+		new_table = key(direction, table.copy())
 
 
-		if not np.array_equal(new_table, TABLE):
+		if not np.array_equal(new_table, table):
 			stateInvalidMoves=0
-			TABLE = randomfill(new_table)
+			table = randomfill(new_table)
 				
 		else:
 			totalInvalidMoves+=1
@@ -181,25 +181,25 @@ def runGame(TABLE, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 
 		validDirections=0
 		for d in LETTERS:
-			if directionIsValid(d, TABLE): validDirections+=1
+			if directionIsValid(d, table): validDirections+=1
 		if validDirections == 1:
-			replayQueue.append(TABLE.copy())
+			replayQueue.append(table.copy())
 		
 
-		if gameOver(TABLE):
+		if gameOver(table):
 			done=True
 
 		if done:
 			break
 	
 
-	return (getScore(TABLE), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, replayQueue)
+	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, replayQueue)
 
-def getTargs(TABLE, trainingStage, realDir):
+def getTargs(table, trainingStage, realDir):
 
 	targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
 
-	trueTable=TABLE.copy()
+	trueTable=table.copy()
 	trueMT=getMtNumb(trueTable)
 
 	for x, d in enumerate(LETTERS):
@@ -214,31 +214,31 @@ def getTargs(TABLE, trainingStage, realDir):
 
 	
 	for i in rangeFour:
-		TABLE=trueTable.copy()
+		table=trueTable.copy()
 		direction = LETTERS[i]
-		new_table = key(direction, TABLE.copy())
+		new_table = key(direction, table.copy())
 
 		
 
-		if not np.array_equal(new_table, TABLE):
-			TABLE = randomfill(new_table)
+		if not np.array_equal(new_table, table):
+			table = randomfill(new_table)
 			reward=.1
 				
 		else:
 			targs[i]=0
 			continue
 
-		mt=getMtNumb(TABLE)
+		mt=getMtNumb(table)
 		mtDif=mt-trueMT
 		percentMtDif=mtDif/16
 
 		if trainingStage >1:
-			if gameOver(TABLE):
+			if gameOver(table):
 				reward-=.25
 
 			validSecondaries=0
 			for d in LETTERS:
-				if directionIsValid(d, TABLE): validSecondaries+=1
+				if directionIsValid(d, table): validSecondaries+=1
 			if validSecondaries == 0: reward=-.2
 
 			reward+=.05*validSecondaries
@@ -261,9 +261,9 @@ def directionIsValid(direction, oldTable):
 
 
 
-def key(direction, TABLE):
+def key(direction, table):
     # Work on a copy so the operation is atomic.
-    newTable = TABLE.copy()
+    newTable = table.copy()
 
     def processLine(line):
         # Remove empty spaces
@@ -289,21 +289,21 @@ def key(direction, TABLE):
 
     if direction == 'a':  # left
         for i in range(4):
-            newTable[i] = processLine(TABLE[i])
+            newTable[i] = processLine(table[i])
 
     elif direction == 'd':  # right
         for i in range(4):
-            line = processLine(TABLE[i][::-1])
+            line = processLine(table[i][::-1])
             newTable[i] = line[::-1]
 
     elif direction == 'w':  # up
         for j in range(4):
-            line = processLine(TABLE[:, j])
+            line = processLine(table[:, j])
             newTable[:, j] = line
 
     elif direction == 's':  # down
         for j in range(4):
-            line = processLine(TABLE[::-1, j])
+            line = processLine(table[::-1, j])
             newTable[:, j] = line[::-1]
 
     return newTable
