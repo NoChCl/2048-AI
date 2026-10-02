@@ -91,7 +91,7 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 
 	desiredBoards = 1000
 
-	minLen = desiredBoards/len(LETTERS)
+	minLen = 250
 
 
 	for cat in catagorizedBoards:
