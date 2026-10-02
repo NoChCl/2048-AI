@@ -65,7 +65,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 
 def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	fullGameScore, net, error, replayQueue = runGame(table, net, logQueue, id, trainingStage)
+	fullGameScore, net, error, replayBoards = runGame(table, net, logQueue, id, trainingStage)
 
 
 	try:
@@ -76,7 +76,7 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 		with open(f"replays_{id}.pkl", "wb") as f:
 			pickle.dump(replays, f)
 
-	replays += replayQueue
+	replays += replayBoards
 
 	newReplays = []
 
@@ -86,13 +86,28 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 
 	replays = newReplays
 
-	if len(replays) > 1000:
-		replays=replays[-1000:]
+	minLen=250
+
+	catagorizedBoards = catagorizeBoard(replays)
+
+	for cat in catagorizedBoards:
+		if len(cat) < minLen and len(cat) > 0:
+			minLen=len(cat)
+
+	for cat in catagorizedBoards:
+		if len(cat) > minLen:
+			random.shuffle(cat)
+			del cat[minLen:]
+
+	replays = []
+	for cat in catagorizedBoards:
+		replays.extend(cat)
+
 
 	with open(f"replays_{id}.pkl", "wb") as f:
 		pickle.dump(replays, f)
 
-	loopNumb = min(len(replays), 25)
+	loopNumb = min(len(replays), 128)
 	for i in range(loopNumb):
 		thisTable=replays.pop(random.randint(0, len(replays)-1))
 		n, net = netInput(net, thisTable)
@@ -101,7 +116,17 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 
 
 	return [fullGameScore, net, error]
-	
+
+def catagorizeBoard(tables):
+	catagorizedBoards = [[] for _ in range(4)]
+	for table in tables:
+		validDirections=0
+		for d in LETTERS:
+			if directionIsValid(d, table):
+				validDirections+=1
+		if validDirections > 0:
+			catagorizedBoards[validDirections-1].append(table)
+	return catagorizedBoards	
 
 
 def getMtNumb(table):
@@ -148,7 +173,7 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 	done=False
 	totalInvalidMoves=0
 	stateInvalidMoves=0
-	replayQueue = []
+	boards = [table.copy()]
 	while True:
 		n, net = netInput(net, table)
 		
@@ -168,22 +193,22 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 		if not np.array_equal(new_table, table):
 			stateInvalidMoves=0
 			table = randomfill(new_table)
+			boards.append(table.copy())
 				
 		else:
 			totalInvalidMoves+=1
 			stateInvalidMoves+=1
 
-			if stateInvalidMoves>=16:
+			if stateInvalidMoves>=64:
 				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
 				done=True
-			elif stateInvalidMoves==1:
-				replayQueue.append(oldTable.copy())
+
 
 		validDirections=0
 		for d in LETTERS:
 			if directionIsValid(d, table): validDirections+=1
-		if validDirections == 1:
-			replayQueue.append(table.copy())
+
+
 		
 
 		if gameOver(table):
@@ -193,7 +218,7 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			break
 	
 
-	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, replayQueue)
+	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, boards)
 
 def getTargs(table, trainingStage, realDir):
 
