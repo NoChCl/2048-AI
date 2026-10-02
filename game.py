@@ -24,7 +24,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	
 	localHighScore= masterHighScores[id]
 
-	numbGames=50
+	numbGames=256
 	
 	for i in range(numbGames):
 		thisGameScore, netSave.net, percentError = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
@@ -86,9 +86,13 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 
 	replays = newReplays
 
-	minLen=250
+
+
+	desiredBoards = 1000
 
 	catagorizedBoards = catagorizeBoard(replays)
+
+	minLen=desiredBoards/len(catagorizedBoards)
 
 	for cat in catagorizedBoards:
 		if len(cat) < minLen and len(cat) > 0:
