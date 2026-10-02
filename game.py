@@ -87,12 +87,11 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	replays = newReplays
 
 
+	catagorizedBoards = catagorizeBoard(replays)
 
 	desiredBoards = 1000
 
-	catagorizedBoards = catagorizeBoard(replays)
-
-	minLen=desiredBoards/len(catagorizedBoards)
+	minLen = desiredBoards/len(catagorizedBoards)
 
 	for cat in catagorizedBoards:
 		if len(cat) < minLen and len(cat) > 0:
