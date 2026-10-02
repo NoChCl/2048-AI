@@ -43,6 +43,7 @@ def runDemo(net, stage):
 	displayTable=TABLE.copy()
 	targs=[.5,.5,.5,.5, 0, 0, 0, 0, 0]
 	iterations=1
+	shouldBeDead=False
 	with Live(makeDemoTable(targs, targs), refresh_per_second=10) as live:
 		while True:
 			disp.FPSCLOCK.tick(FPS)
@@ -52,6 +53,10 @@ def runDemo(net, stage):
 			if iterations != 1:
 				while not disp.buttonPressed():
 					disp.FPSCLOCK.tick(FPS)
+
+			if shouldBeDead:
+				disp.pygame.quit()
+				return getScore(TABLE)
 
 
 			n, net = netInput(net, TABLE)
@@ -71,8 +76,7 @@ def runDemo(net, stage):
 				iterations += 1
 				
 			else:
-				disp.pygame.quit()
-				return "Net made an invalid move, ending demo."
+				shouldBeDead=True
 				
 
 			if gameOver(TABLE):
