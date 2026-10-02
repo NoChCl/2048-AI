@@ -24,7 +24,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	
 	localHighScore= masterHighScores[id]
 
-	numbGames=128
+	numbGames=32
 	
 	for i in range(numbGames):
 		thisGameScore, netSave.net, percentError = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
