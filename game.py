@@ -55,8 +55,8 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 			localHighScore = thisGameScore
 			scoreUpdates.put((id, localHighScore))
 
-	netSave.avgScore = sumScore / gamesPlayed
-	netSave.error = sumError / gamesPlayed
+	netSave.updateScore(sumScore / gamesPlayed)
+	netSave.updateError(sumError / gamesPlayed)
 	netSave.highScore = localHighScore
 	netSave.stage = netSave.stage
 
