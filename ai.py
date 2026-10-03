@@ -135,7 +135,11 @@ class netSave():
                 'net',
                 'error',
                 'highScore',
-                'stage']
+                'stage',
+                'scoreDelta',
+                'scoreDeltaTrend',
+                'errorDelta',
+                'errorDeltaTrend']
         
         def __init__(self, score, net, error, highScore, stage):
                 self.avgScore=score
@@ -143,6 +147,21 @@ class netSave():
                 self.error=error
                 self.highScore=highScore
                 self.stage=stage
+                self.scoreDelta=0
+                self.scoreDeltaTrend=0
+                self.errorDelta=0
+                self.errorDeltaTrend=0
+        def updateScore(self, score):
+                delta=score-self.avgScore
+                self.scoreDeltaTrend=.9*self.scoreDeltaTrend+.1*delta
+                self.scoreDelta=delta
+                self.avgScore=score
+        def updateError(self, error):
+                        delta=error-self.error
+                        self.errorDeltaTrend=.9*self.errorDeltaTrend+.1*delta
+                        self.errorDelta=delta
+                        self.error=error
+               
     
 def maxMin(targ):
       return max(-.5, min(.5, targ))
