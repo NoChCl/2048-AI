@@ -24,39 +24,29 @@ def worker(netSave, id, outQueue, logQueue, scoreUpdates, highScores):
 
 
 def buildTable(netSaves, lastRuntime, lastUpdateTime):
-	netStats = [[netSave.avgScore, netSave.net, netSave.error, netSave.highScore] for netSave in netSaves]
 
 	table = Table()
 
 	table.add_column("Net")
 	table.add_column("Score")
+	table.add_column("Score Delta")
 	table.add_column("Error")
+	table.add_column("Error Delta")
 	table.add_column("Runtime")
 	table.add_column("Last Seen")
 
-	for index, stat in enumerate(netStats):
+	for index, save in enumerate(netSaves):
+		timeSince = time.time() - lastUpdateTime[index]
 
-		if stat is None:
-
-			table.add_row(
-				str(index),
-				"-",
-				"-",
-				"-",
-				"never"
-			)
-
-		else:
-
-			timeSince = time.time() - lastUpdateTime[index]
-
-			table.add_row(
-				str(index),
-				str(stat[0]),
-				str(stat[2]),
-				f"{lastRuntime[index]:.1f}s",
-				f"{timeSince:.1f}s ago"
-			)
+		table.add_row(
+			str(index),
+			str(save.avgScore),
+			str(save.scoreDelta),
+			str(save.error),
+			str(save.errorDelta),
+			f"{lastRuntime[index]:.1f}s",
+			f"{timeSince:.1f}s ago"
+		)
 
 	return table
 
