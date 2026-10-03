@@ -29,9 +29,9 @@ def buildTable(netSaves, lastRuntime, lastUpdateTime):
 
 	table.add_column("Net")
 	table.add_column("Score")
-	table.add_column("Score Delta")
+	table.add_column("Delta")
 	table.add_column("Error")
-	table.add_column("Error Delta")
+	table.add_column("Delta")
 	table.add_column("Runtime")
 	table.add_column("Last Seen")
 
@@ -41,14 +41,17 @@ def buildTable(netSaves, lastRuntime, lastUpdateTime):
 		table.add_row(
 			str(index),
 			str(save.avgScore),
-			str(save.scoreDelta),
+			str(round(save.scoreDeltaTrend, 3)),
 			str(save.error),
-			str(save.errorDelta),
+			str(round(save.errorDeltaTrend, 3)),
 			f"{lastRuntime[index]:.1f}s",
 			f"{timeSince:.1f}s ago"
 		)
 
 	return table
+
+def round(num, digits):
+	return int(num*(10**digits))/(10**digits)
 
 def buildHighScores(logs, logQueue, highScores):
 
