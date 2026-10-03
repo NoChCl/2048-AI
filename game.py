@@ -93,10 +93,6 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	minLen = int(1000*.30)
 
 
-	for cat in catagorizedBoards:
-		if len(cat) < minLen and len(cat) > 0:
-			minLen=len(cat)
-
 	tempLen = minLen
 	for i, cat in enumerate(catagorizedBoards):
 		
