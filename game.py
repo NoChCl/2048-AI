@@ -36,14 +36,14 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 		avgScore = ( sumScore + ( ( numbGames - gamesPlayed ) * netSave.avgScore ) ) / numbGames
 		avgError = ( sumError + ( ( numbGames - gamesPlayed ) * netSave.error ) ) / numbGames
 
-		if netSave.stage == 1 and avgError < 1:
+		if netSave.stage == 1 and avgError < 3.5:
 			netSave.stage=2
 			logQueue.put((id, "INFO", f"Promoted to Stage 2"))
 		elif netSave.stage == 2 and thisGameScore > 300:
 			netSave.stage=3
 			logQueue.put((id, "INFO", f"Promoted to Stage 3"))
 
-		if netSave.stage > 1 and avgError > 5:
+		if netSave.stage > 1 and avgError > 4:
 			netSave.stage=1
 			logQueue.put((id, "INFO", f"Demoted to Stage 1"))
 		elif netSave.stage > 2 and avgScore < 200:
