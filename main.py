@@ -40,10 +40,10 @@ def buildTable(netSaves, lastRuntime, lastUpdateTime):
 
 		table.add_row(
 			str(index),
-			str(save.avgScore),
+			str(round(save.avgScore, 3)),
 			str(round(save.scoreDeltaTrend, 3)),
-			str(save.error),
-			str(round(save.errorDeltaTrend, 3)),
+			str(round(save.error, 4)),
+			str(round(save.errorDeltaTrend, 5)),
 			f"{lastRuntime[index]:.1f}s",
 			f"{timeSince:.1f}s ago"
 		)
