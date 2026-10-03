@@ -90,17 +90,30 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	catagorizedBoards = catagorizeBoard(replays)
 
 
-	minLen = 250
+	minLen = int(1000*.30)
 
 
 	for cat in catagorizedBoards:
 		if len(cat) < minLen and len(cat) > 0:
 			minLen=len(cat)
 
-	for cat in catagorizedBoards:
-		if len(cat) > minLen:
-			random.shuffle(cat)
-			del cat[minLen:]
+	tempLen = minLen
+	for i, cat in enumerate(catagorizedBoards):
+		
+		if i == 2:
+			tempLen = minLen * (25/30)
+		elif i == 3:
+			tempLen = minLen * .5
+
+
+		tempLen = int(tempLen)
+		if len(cat) > tempLen:
+			cat.reverse()
+			del cat[tempLen:]
+			cat.reverse()
+		
+	
+
 
 	replays = []
 	for cat in catagorizedBoards:
