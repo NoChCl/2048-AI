@@ -108,9 +108,15 @@ if __name__ == "__main__":
 		with open("netSaves.pkl","rb") as f: netSaves = pickle.load(f)
 
 		nets=[]
+		newNetSaves=[]
 		for i, save in enumerate(netSaves):
+			newNetSaves += [netSave(save.avgScore, save.net, save.error, save.highScore, save.stage)]
 			nets += [save.net]
 			highScores[i] = save.highScore
+			
+		netSaves = newNetSaves
+		del newNetSaves
+
 
 	else:
 		nets=genNewNets(coreNumb)
