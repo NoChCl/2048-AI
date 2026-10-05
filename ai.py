@@ -153,12 +153,12 @@ class netSave():
                 self.errorDeltaTrend=0
         def updateScore(self, score):
                 delta=score-self.avgScore
-                self.scoreDeltaTrend=.9*self.scoreDeltaTrend+.1*delta
+                self.scoreDeltaTrend=.995*self.scoreDeltaTrend+.005*delta
                 self.scoreDelta=delta
                 self.avgScore=score
         def updateError(self, error):
                         delta=error-self.error
-                        self.errorDeltaTrend=.9*self.errorDeltaTrend+.1*delta
+                        self.errorDeltaTrend=.995*self.errorDeltaTrend+.005*delta
                         self.errorDelta=delta
                         self.error=error
                
