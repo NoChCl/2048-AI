@@ -1,5 +1,19 @@
 import random, math
 
+def make():
+    inputCount = 16
+        
+        #generate first layer, with inputCount weights, 32 total
+    firstLayer = [generateNeuron(inputCount) for _ in range(32)]
+    
+    #generate first layer, with inputCount weights, 2 total
+    secondLayer = [generateNeuron(32) for _ in range(32)]
+    
+    #generate last layer, with 2 weights, 4 total
+    outputLayer = [generateNeuron(32) for _ in range(9)]
+
+    otherLayers = [firstLayer, secondLayer, outputLayer]
+    return inputCount, otherLayers
 
 class Nuron():
         __slots__ = [
@@ -207,20 +221,6 @@ def generateNeuron(inputCount):
         
         return [generateWeights(inputCount), random.randint(*weightRange)/100]
 
-def make():
-    inputCount = 16
-        
-        #generate first layer, with inputCount weights, 32 total
-    firstLayer = [generateNeuron(inputCount) for _ in range(32)]
-    
-    #generate first layer, with inputCount weights, 2 total
-    secondLayer = [generateNeuron(32) for _ in range(32)]
-    
-    #generate last layer, with 2 weights, 4 total
-    outputLayer = [generateNeuron(32) for _ in range(9)]
-
-    otherLayers = [firstLayer, secondLayer, outputLayer]
-    return inputCount, otherLayers
 
 
 def genNewNets(netNumb):
