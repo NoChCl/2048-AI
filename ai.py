@@ -141,7 +141,7 @@ class netSave():
                 'errorDelta',
                 'errorDeltaTrend']
         
-        def __init__(self, score, net, error, highScore, stage):
+        def __init__(self, score=0, net=NuralNet(16,make()[1]), error=100, highScore=0, stage=1):
                 self.avgScore=score
                 self.net=net
                 self.error=error
