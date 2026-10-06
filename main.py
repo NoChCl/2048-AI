@@ -110,7 +110,7 @@ if __name__ == "__main__":
 		nets=[]
 		newNetSaves=[]
 		for i, save in enumerate(netSaves):
-			newNetSaves += [netSave(save.net, save.avgScore, save.error, save.highScore, 1, save.stage)]
+			newNetSaves += [netSave(save.net, save.avgScore, save.error, save.highScore, save.validDif, save.stage)]
 			nets += [save.net]
 			highScores[i] = save.highScore
 
