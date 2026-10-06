@@ -32,6 +32,8 @@ def buildTable(netSaves, lastRuntime, lastUpdateTime):
 	table.add_column("Delta")
 	table.add_column("Error")
 	table.add_column("Delta")
+	table.add_column("Valid Dif")
+	table.add_column("% Invalid")
 	table.add_column("Runtime")
 	table.add_column("Last Seen")
 
@@ -44,6 +46,8 @@ def buildTable(netSaves, lastRuntime, lastUpdateTime):
 			str(round(save.scoreDeltaTrend, 3)),
 			str(round(save.error, 4)),
 			str(round(save.errorDeltaTrend, 5)),
+			str(round(save.validDif, 4)),
+			str(round(save.percentInvalid, 2)) + "%",
 			f"{lastRuntime[index]:.1f}s",
 			f"{timeSince:.1f}s ago"
 		)
