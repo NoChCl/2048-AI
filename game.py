@@ -20,6 +20,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 
 	sumScore=0
 	sumError=0
+	sumValidDifferences=0
 	gamesPlayed=0
 	
 	localHighScore= masterHighScores[id]
@@ -27,23 +28,24 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	numbGames=32
 	
 	for i in range(numbGames):
-		thisGameScore, netSave.net, percentError = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
+		thisGameScore, netSave.net, percentError, thisAvgValidDifferences = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
 	
 		sumScore+=thisGameScore
 		sumError+=percentError
+		sumValidDifferences+=thisAvgValidDifferences
 		gamesPlayed+=1
 
 		avgScore = ( sumScore + ( ( numbGames - gamesPlayed ) * netSave.avgScore ) ) / numbGames
-		avgError = ( sumError + ( ( numbGames - gamesPlayed ) * netSave.error ) ) / numbGames
+		avgValidDif = ( sumValidDifferences + ( ( numbGames - gamesPlayed ) * netSave.validDif ) ) / numbGames
 
-		if netSave.stage == 1 and avgError < 1:
+		if netSave.stage == 1 and avgValidDif < .1:
 			netSave.stage=2
 			logQueue.put((id, "INFO", f"Promoted to Stage 2"))
 		elif netSave.stage == 2 and thisGameScore > 300:
 			netSave.stage=3
 			logQueue.put((id, "INFO", f"Promoted to Stage 3"))
 
-		if netSave.stage > 1 and avgError > 3:
+		if netSave.stage > 1 and avgValidDif > .2:
 			netSave.stage=1
 			logQueue.put((id, "INFO", f"Demoted to Stage 1"))
 		elif netSave.stage > 2 and avgScore < 200:
@@ -57,6 +59,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 
 	netSave.updateScore(sumScore / gamesPlayed)
 	netSave.updateError(sumError / gamesPlayed)
+	netSave.validDif = sumValidDifferences / gamesPlayed
 	netSave.highScore = localHighScore
 	netSave.stage = netSave.stage
 
@@ -65,7 +68,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 
 def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	fullGameScore, net, error, replayBoards = runGame(table, net, logQueue, id, trainingStage)
+	fullGameScore, net, error, replayBoards, avgValidDifferences = runGame(table, net, logQueue, id, trainingStage)
 
 
 	try:
@@ -119,15 +122,24 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 	with open(f"replays_{id}.pkl", "wb") as f:
 		pickle.dump(replays, f)
 
+	sumValidDifferences=0
 	loopNumb = min(len(replays), 256)
 	for i in range(loopNumb):
 		thisTable=replays.pop(random.randint(0, len(replays)-1))
 		n, net = netInput(net, thisTable)
 		index=np.argmax(n[:4])
-		net.train(getTargs(thisTable, trainingStage, index))
 
+		targs = getTargs(thisTable, trainingStage, index)
+		net.train(targs)
+		for i in range(4):
+			sumValidDifferences += abs(targs[i+4] - n[i+4])
 
-	return [fullGameScore, net, error]
+	AVDif = (
+		avgValidDifferences+
+			(sumValidDifferences/(4*loopNumb))
+		 )/2
+	
+	return [fullGameScore, net, error, AVDif]
 
 def catagorizeBoard(tables):
 	catagorizedBoards = [[] for _ in range(4)]
@@ -186,12 +198,18 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 	totalInvalidMoves=0
 	stateInvalidMoves=0
 	boards = [table.copy()]
+	sumValidDifferences=0
 	while True:
 		n, net = netInput(net, table)
 		
 		index=np.argmax(n[:4])
 
-		net.train(getTargs(table, trainingStage, index))
+		targs = getTargs(table, trainingStage, index)
+
+		net.train(targs)
+
+		for i in range(4):
+			sumValidDifferences += abs(targs[i+4] - n[i+4])
 
 		iterations += 1
 
@@ -222,7 +240,7 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			break
 	
 
-	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, boards)
+	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, boards, sumValidDifferences/(4*iterations))
 
 def getTargs(table, trainingStage, realDir):
 

@@ -110,7 +110,7 @@ if __name__ == "__main__":
 		nets=[]
 		newNetSaves=[]
 		for i, save in enumerate(netSaves):
-			newNetSaves += [netSave(save.net, save.avgScore, save.error, save.highScore, save.stage)]
+			newNetSaves += [netSave(save.net, save.avgScore, save.error, save.highScore, 1, save.stage)]
 			nets += [save.net]
 			highScores[i] = save.highScore
 
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 	else:
 		nets=genNewNets(coreNumb)
-		netSaves=[netSave(net, 0, 100, 0, 1) for net in nets]
+		netSaves=[netSave(net) for net in nets]
 
 	print("Building Proccesses")
 	proccesses=[]
