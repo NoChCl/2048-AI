@@ -216,13 +216,6 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 				done=True
 
 
-		validDirections=0
-		for d in LETTERS:
-			if directionIsValid(d, table): validDirections+=1
-
-
-		
-
 		if gameOver(table):
 			done=True
 
