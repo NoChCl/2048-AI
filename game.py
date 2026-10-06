@@ -21,6 +21,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	sumScore=0
 	sumError=0
 	sumValidDifferences=0
+	numInvalid=0
 	gamesPlayed=0
 	
 	localHighScore= masterHighScores[id]
@@ -28,11 +29,12 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 	numbGames=32
 	
 	for i in range(numbGames):
-		thisGameScore, netSave.net, percentError, thisAvgValidDifferences = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
+		thisGameScore, netSave.net, percentError, thisAvgValidDifferences, lossByInvalid = trainingSequence(table.copy(), netSave.net, logQueue, id, netSave.stage)
 	
 		sumScore+=thisGameScore
 		sumError+=percentError
 		sumValidDifferences+=thisAvgValidDifferences
+		if lossByInvalid: numInvalid+=1
 		gamesPlayed+=1
 
 		avgScore = ( sumScore + ( ( numbGames - gamesPlayed ) * netSave.avgScore ) ) / numbGames
@@ -59,6 +61,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 
 	netSave.updateScore(sumScore / gamesPlayed)
 	netSave.updateError(sumError / gamesPlayed)
+	netSave.percentInvalid = (numInvalid / gamesPlayed) * 100
 	netSave.validDif = sumValidDifferences / gamesPlayed
 	netSave.highScore = localHighScore
 	netSave.stage = netSave.stage
@@ -68,7 +71,7 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 
 def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingStage=2):
 
-	fullGameScore, net, error, replayBoards, avgValidDifferences = runGame(table, net, logQueue, id, trainingStage)
+	fullGameScore, net, error, replayBoards, avgValidDifferences, lossByInvalid = runGame(table, net, logQueue, id, trainingStage)
 
 
 	try:
@@ -139,7 +142,7 @@ def trainingSequence(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, tr
 			(sumValidDifferences/(4*loopNumb))
 		 )/2
 	
-	return [fullGameScore, net, error, AVDif]
+	return [fullGameScore, net, error, AVDif, lossByInvalid]
 
 def catagorizeBoard(tables):
 	catagorizedBoards = [[] for _ in range(4)]
@@ -199,6 +202,7 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 	stateInvalidMoves=0
 	boards = [table.copy()]
 	sumValidDifferences=0
+	lossByInvalid=False
 	while True:
 		n, net = netInput(net, table)
 		
@@ -229,7 +233,7 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			stateInvalidMoves+=1
 
 			if stateInvalidMoves>=2:
-				logQueue.put((id, "WARNING", "Too many invalid moves, ending game"))
+				lossByInvalid=True
 				done=True
 
 
@@ -240,7 +244,7 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 			break
 	
 
-	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, boards, sumValidDifferences/(4*iterations))
+	return (getScore(table), net, (totalInvalidMoves/(totalInvalidMoves+iterations))*100, boards, sumValidDifferences/(4*iterations), lossByInvalid)
 
 def getTargs(table, trainingStage, realDir):
 

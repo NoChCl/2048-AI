@@ -140,9 +140,10 @@ class netSave():
                 'scoreDeltaTrend',
                 'errorDelta',
                 'errorDeltaTrend',
-                'validDif']
+                'validDif',
+                'percentInvalid']
         
-        def __init__(self, net, score=0, error=100, highScore=0, validDif=1, stage=1):
+        def __init__(self, net, score=0, error=100, highScore=0, validDif=1, stage=1, percentInvalid=100):
                 self.avgScore=score
                 self.net=net
                 self.error=error
@@ -153,6 +154,7 @@ class netSave():
                 self.errorDelta=0
                 self.errorDeltaTrend=0
                 self.validDif=validDif
+                self.percentInvalid=percentInvalid
         def updateScore(self, score):
                 delta=score-self.avgScore
                 self.scoreDeltaTrend=.995*self.scoreDeltaTrend+.005*delta
