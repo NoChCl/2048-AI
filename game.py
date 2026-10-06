@@ -198,7 +198,6 @@ def runGame(table, net=NuralNet(16,make()[1]), logQueue=None, id=-1, trainingSta
 
 		direction = LETTERS[index]
 
-		oldTable=table.copy()
 		new_table = key(direction, table.copy())
 
 
