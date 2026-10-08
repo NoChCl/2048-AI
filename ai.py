@@ -143,7 +143,7 @@ class netSave():
                 'validDif',
                 'percentInvalid']
         
-        def __init__(self, net, score=0, error=100, highScore=0, validDif=1, stage=1, percentInvalid=100):
+        def __init__(self, net, stage=1, score=0, error=100, highScore=0, validDif=1, percentInvalid=100):
                 self.avgScore=score
                 self.net=net
                 self.error=error
