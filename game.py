@@ -47,12 +47,12 @@ def avrgGame(netSave, logQueue, scoreUpdates, masterHighScores, id):
 			netSave.stage=3
 			logQueue.put((id, "INFO", f"Promoted to Stage 3"))
 
-		if netSave.stage > 1 and avgValidDif > .2:
-			netSave.stage=1
-			logQueue.put((id, "INFO", f"Demoted to Stage 1"))
-		elif netSave.stage > 2 and avgScore < 200:
-			netSave.stage=2
-			logQueue.put((id, "INFO", f"Demoted to Stage 2"))
+		# if netSave.stage > 1 and avgValidDif > .2:
+		# 	netSave.stage=1
+		# 	logQueue.put((id, "INFO", f"Demoted to Stage 1"))
+		# elif netSave.stage > 2 and avgScore < 200:
+		# 	netSave.stage=2
+		# 	logQueue.put((id, "INFO", f"Demoted to Stage 2"))
 
 
 		if thisGameScore > localHighScore:

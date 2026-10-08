@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
 	else:
 		nets=genNewNets(coreNumb)
-		netSaves=[netSave(net) for net in nets]
+		netSaves=[netSave(net, 30) for net in nets]
 
 	print("Building Proccesses")
 	proccesses=[]
